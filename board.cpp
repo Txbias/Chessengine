@@ -91,7 +91,7 @@ std::vector<Move> Board::getAllMoves(int team) {
     std::vector<Move> moves;
     U64 empty = ~occupied;
 
-    std::vector<Move> pawnMoves = Pawn::whiteGetMoves(pawns[WHITE], empty, black);
+    std::vector<Move> pawnMoves = Pawn::getMoves(pawns[WHITE], empty, black, team);
     moves.insert(moves.end(), std::begin(pawnMoves), std::end(pawnMoves));
 
     return moves;
