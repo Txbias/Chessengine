@@ -91,8 +91,14 @@ std::vector<Move> Board::getAllMoves(int team) {
     std::vector<Move> moves;
     U64 empty = ~occupied;
 
-    std::vector<Move> pawnMoves = Pawn::getMoves(pawns[WHITE], empty, black, team);
+    U64 enemy = team == WHITE ? black : white;
+    U64 ownPieces = team == WHITE ? white : black;
+
+    std::vector<Move> pawnMoves = Pawn::getMoves(pawns[team], empty, black, team);
     moves.insert(moves.end(), std::begin(pawnMoves), std::end(pawnMoves));
+
+    std::vector<Move> knightMoves = Knight::getMoves(knights[team], enemy, ownPieces);
+    moves.insert(moves.end(), std::begin(knightMoves), std::end(knightMoves));
 
     return moves;
 }

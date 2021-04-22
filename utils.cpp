@@ -4,7 +4,7 @@
 int getCardinality(unsigned long bitboard) {
     int cardinality = 0;
     for(int i = 0; i < 64; i++) {
-        if(bitboard & (1 << i)) {
+        if(bitboard & (1UL << i)) {
             cardinality++;
         }
     }
@@ -31,8 +31,9 @@ void setRow(unsigned long &bitboard, unsigned int row) {
     }
 }
 
-void setFile(unsigned long &bitboard, unsigned long file) {
+unsigned long setFile(unsigned long bitboard, unsigned long file) {
     for(int i = 0; i < 8; i++) {
         setBit(bitboard, i * 8 + file);
     }
+    return bitboard;
 }

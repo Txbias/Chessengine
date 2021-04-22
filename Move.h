@@ -8,7 +8,12 @@ public:
         m_move = ((flags & 0xf) << 12) | ((from & 0x3f) << 6) | (to & 0x3f);
     }
     friend std::ostream& operator<<(std::ostream& os, const Move& move) {
-        os << move.getFrom() << " " << move.getTo() << " " << move.getFlags();
+        os << toNotation(move.getFrom()) << " " << toNotation(move.getTo())
+            << " " << move.getFlags() << std::endl;
+
+        os << move.getFrom() << " " << move.getTo()
+           << " " << move.getFlags() << std::endl;
+
         return os;
     }
 
@@ -26,6 +31,15 @@ public:
 
     bool isCapture() const {
         return (m_move & CAPTURE_FLAG) != 0;
+    }
+
+    static std::string toNotation(unsigned int position) {
+        unsigned int row = position / 8 + 1;
+        unsigned int fileInt = position  % 8;
+
+        char file = fileInt + 97;
+
+        return file + std::to_string(row);
     }
 
 private:

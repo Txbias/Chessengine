@@ -104,11 +104,11 @@ std::vector<Move> Pawn::getMoves(U64 pawns, U64 empty, U64 enemyPieces, int team
     }
 
     for (int i = 0; i < 8; i++) {
-        if (able2DblPush & (1 << (i + 8))) {
+        if (able2DblPush & (1UL << (i + 8))) {
             Move move(i + 8, i + 24, FLAG_PAWN_DBL_PUSH);
             moves.emplace_back(move);
         }
-        if (able2Push & (1 << (i + 8))) {
+        if (able2Push & (1UL << (i + 8))) {
             Move move(i + 8, i + 16, FLAG_QUIET);
             moves.emplace_back(move);
         }
@@ -124,15 +124,15 @@ std::vector<Move> Pawn::getMoves(U64 pawns, U64 empty, U64 enemyPieces, int team
 
     if(team == WHITE) {
         for (int i = 0; i < 64; i++) {
-            if (able2Capture & (1 << i)) {
-                Move move(i, whitePawnAnyAttack(1 << i), FLAG_CAPTURE);
+            if (able2Capture & (1UL << i)) {
+                Move move(i, whitePawnAnyAttack(1UL << i), FLAG_CAPTURE);
                 moves.emplace_back(move);
             }
         }
     } else {
         for(int i = 0; i < 64; i++) {
-            if(able2Capture & (1 << i)) {
-                Move move(i, blackPawnsAnyAttack(1 << i), FLAG_CAPTURE);
+            if(able2Capture & (1UL << i)) {
+                Move move(i, blackPawnsAnyAttack(1UL << i), FLAG_CAPTURE);
                 moves.emplace_back(move);
             }
         }

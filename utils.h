@@ -9,4 +9,4 @@ unsigned long nortOne(unsigned long bitboard);
 unsigned long soutOne(unsigned long bitboard);
 void setBit(unsigned long &bitboard, unsigned int pos);
 void setRow(unsigned long &bitboard, unsigned int row);
-void setFile(unsigned long &bitboard, unsigned long file);
+unsigned long setFile(unsigned long bitboard, unsigned long file);
