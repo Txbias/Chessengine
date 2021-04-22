@@ -96,3 +96,19 @@ std::vector<Move> Board::getAllMoves(int team) {
 
     return moves;
 }
+
+int Board::valuePosition(int team) {
+    int value = 0;
+
+    int valuePawnsWhite = getCardinality(pawns[WHITE]) * VALUE_PAWN;
+    int valuePawnsBlack = getCardinality(pawns[BLACK]) * VALUE_PAWN;
+
+    if(team == WHITE) {
+        value += (valuePawnsWhite - valuePawnsBlack);
+    } else {
+        value += (valuePawnsBlack - valuePawnsWhite);
+    }
+
+
+    return value;
+}

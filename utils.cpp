@@ -1,6 +1,17 @@
 #include "utils.h"
 
 
+int getCardinality(unsigned long bitboard) {
+    int cardinality = 0;
+    for(int i = 0; i < 64; i++) {
+        if(bitboard & (1 << i)) {
+            cardinality++;
+        }
+    }
+
+    return cardinality;
+}
+
 unsigned long nortOne(unsigned long bitboard) {
     return bitboard << 8;
 }
