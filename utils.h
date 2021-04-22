@@ -1,5 +1,9 @@
 #pragma once
 
+#define FLAG_QUIET 0
+#define FLAG_PAWN_DBL_PUSH 1
+#define FLAG_CAPTURE 4
+
 inline unsigned long nortOne(unsigned long bitboard) {
     return bitboard << 8;
 }

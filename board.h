@@ -18,8 +18,6 @@ private:
     const int BLACK = 1;
 
     void initializePieces();
-
-
 public:
 
     Board();
@@ -31,7 +29,7 @@ public:
     unsigned long queens[2];
     unsigned long kings[2];
 
-    std::vector<Move> getAllMoves();
+    std::vector<Move> getAllMoves(int team);
 
     inline unsigned long getWhite() const {
         return white;

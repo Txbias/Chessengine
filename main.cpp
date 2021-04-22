@@ -1,11 +1,16 @@
 #include <iostream>
 
-#include "Move.h"
+#include "board.h"
 
 int main() {
-    Move move(0, 1, 8);
 
+    Board board;
 
-    std::cout << move.isCapture() << std::endl;
+    std::vector<Move> moves = board.getAllMoves(0);
+
+    for(Move move : moves) {
+        std::cout << move << std::endl;
+    }
+
     return 0;
 }
