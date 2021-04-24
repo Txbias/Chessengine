@@ -12,7 +12,7 @@ public:
             << " " << move.getFlags() << std::endl;
 
         os << move.getFrom() << " " << move.getTo()
-           << " " << move.getFlags() << std::endl;
+           << " " << move.getFlags();
 
         return os;
     }

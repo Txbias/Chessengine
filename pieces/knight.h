@@ -8,11 +8,10 @@
 namespace Knight {
     typedef unsigned long U64;
 
-    const U64 notAFile = ~setFile(1UL, 0);
+    const U64 notAFile = ~setFile(0UL, 0);
     const U64 notABFile = ~setFile(~notAFile, 1);
-    const U64 notHFile = ~setFile(1UL, 7);
+    const U64 notHFile = ~setFile(0UL, 7);
     const U64 notGHFile = ~setFile(~notHFile, 6);
-
     U64 noNoEa(U64 b);
     U64 noEaEa(U64 b);
     U64 soEaEa(U64 b);

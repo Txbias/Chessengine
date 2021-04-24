@@ -8,13 +8,13 @@ Board::Board() {
 
 void Board::initializePieces() {
     unsigned long whitePawns = 0;
-    setRow(whitePawns, 1);
+    whitePawns = setRow(whitePawns, 1);
     pawns[WHITE] = whitePawns;
     occupied |= whitePawns;
     white |= whitePawns;
 
     unsigned long blackPawns = 0;
-    setRow(blackPawns, 6);
+    blackPawns = setRow(blackPawns, 6);
     pawns[BLACK] = blackPawns;
     occupied |= blackPawns;
     black |= blackPawns;
@@ -100,6 +100,9 @@ std::vector<Move> Board::getAllMoves(int team) {
     std::vector<Move> knightMoves = Knight::getMoves(knights[team], enemy, ownPieces);
     moves.insert(moves.end(), std::begin(knightMoves), std::end(knightMoves));
 
+    std::vector<Move> rookMoves = Rook::getMoves(rooks[team], ownPieces, enemy);
+    moves.insert(moves.end(), std::begin(rookMoves), std::end(rookMoves));
+
     return moves;
 }
 
@@ -108,12 +111,16 @@ int Board::valuePosition(int team) {
 
     int valuePawnsWhite = getCardinality(pawns[WHITE]) * VALUE_PAWN;
     int valuePawnsBlack = getCardinality(pawns[BLACK]) * VALUE_PAWN;
+    value += team == WHITE ? (valuePawnsWhite - valuePawnsBlack) : (valuePawnsBlack - valuePawnsWhite);
 
-    if(team == WHITE) {
-        value += (valuePawnsWhite - valuePawnsBlack);
-    } else {
-        value += (valuePawnsBlack - valuePawnsWhite);
-    }
+    int valueKnightsWhite = getCardinality(knights[WHITE]) * VALUE_KNIGHT;
+    int valueKnightsBlack = getCardinality(knights[BLACK]) * VALUE_KNIGHT;
+    value += team == WHITE ? (valueKnightsWhite - valueKnightsBlack) : (valueKnightsBlack - valueKnightsWhite);
+
+    int valueRooksWhite = getCardinality(rooks[WHITE]) * VALUE_ROOK;
+    int valueRooksBlack = getCardinality(rooks[BLACK]) * VALUE_ROOK;
+    value += team == WHITE ? (valueRooksWhite - valueRooksBlack) : (valueRooksBlack - valueRooksWhite);
+
 
 
     return value;

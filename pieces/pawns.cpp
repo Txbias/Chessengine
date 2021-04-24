@@ -11,6 +11,14 @@ U64 Pawn::soWeOne(U64 b) { return (b >> 9) & notHFile; }
 
 U64 Pawn::noWeOne(U64 b) { return (b << 7) & notHFile; }
 
+U64 nortOne(U64 bitboard) {
+    return bitboard << 8;
+}
+
+U64 soutOne(U64 bitboard) {
+    return bitboard >> 8;
+}
+
 U64 Pawn::whiteSinglePushTargets(U64 whitePawns, U64 empty) {
     return nortOne(whitePawns) & empty;
 }
@@ -21,7 +29,7 @@ U64 Pawn::blackSinglePushTargets(U64 blackPawns, U64 empty) {
 
 U64 Pawn::whiteDblPushTargets(U64 whitePawns, U64 empty) {
     U64 rank4 = 0;
-    setRow(rank4, 3);
+    rank4 = setRow(rank4, 3);
 
     U64 singlePush = whiteSinglePushTargets(whitePawns, empty);
     return nortOne(singlePush) & empty & rank4;
@@ -29,7 +37,7 @@ U64 Pawn::whiteDblPushTargets(U64 whitePawns, U64 empty) {
 
 U64 Pawn::blackDoublePushTargets(U64 blackPawns, U64 empty) {
     U64 rank5 = 0;
-    setRow(rank5, 4);
+    rank5 = setRow(rank5, 4);
     U64 singlePush = blackSinglePushTargets(blackPawns, empty);
     return soutOne(singlePush) & empty & rank5;
 }
@@ -44,7 +52,7 @@ U64 Pawn::blackPawnsAble2Push(U64 blackPawns, U64 empty) {
 
 U64 Pawn::whitePawnsAble2DblPush(U64 whitePawns, U64 empty) {
     U64 rank4 = 0;
-    setRow(rank4, 3);
+    rank4 = setRow(rank4, 3);
 
     U64 emptyRank3 = soutOne(empty & rank4) & empty;
     return whitePawnsAble2Push(whitePawns, emptyRank3);
@@ -52,7 +60,7 @@ U64 Pawn::whitePawnsAble2DblPush(U64 whitePawns, U64 empty) {
 
 U64 Pawn::blackPawnsAble2DblPush(U64 blackPawns, U64 empty) {
     U64 rank5 = 0;
-    setRow(rank5, 4);
+    rank5 = setRow(rank5, 4);
     U64 emptyRank6 = nortOne(empty & rank5) & empty;
     return blackPawnsAble2Push(blackPawns, emptyRank6);
 }

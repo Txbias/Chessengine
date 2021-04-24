@@ -5,6 +5,7 @@
 #include "Move.h"
 #include "pieces/pawns.h"
 #include "pieces/knight.h"
+#include "pieces/rook.h"
 
 class Board {
 
