@@ -75,6 +75,14 @@ std::vector<Move> getSlidingMovesNorth(U64 pieces, U64 ownPieces, U64 enemyPiece
             // Check if a enemy piece gets captured
             unsigned int flag = getFlag(i, enemyPieces);
 
+            if(flag == FLAG_CAPTURE) {
+                // Remove piece from bitboard, to prevent moves trough other
+                // pieces
+                U64 u = 1UL << i;
+                u = ~u;
+                pieces = pieces & u;
+            }
+
             Move move(i-k, i, flag);
             moves.emplace_back(move);
         }
@@ -103,6 +111,14 @@ std::vector<Move> getSlidingMovesSouth(U64 pieces, U64 ownPieces, U64 enemyPiece
             // Check if a enemy piece gets captured
             unsigned int flag = getFlag(i, enemyPieces);
 
+            if(flag == FLAG_CAPTURE) {
+                // Remove piece from bitboard, to prevent moves trough other
+                // pieces
+                U64 u = 1UL << i;
+                u = ~u;
+                pieces = pieces & u;
+            }
+
             Move move(i-k, i, flag);
             moves.emplace_back(move);
         }
@@ -129,6 +145,15 @@ std::vector<Move> getSlidingMovesEast(U64 pieces, U64 ownPieces, U64 enemyPieces
             }
 
             unsigned int flag = getFlag(i, enemyPieces);
+
+            if(flag == FLAG_CAPTURE) {
+                // Remove piece from bitboard, to prevent moves trough other
+                // pieces
+                U64 u = 1UL << i;
+                u = ~u;
+                pieces = pieces & u;
+            }
+
             Move move(i-k, i, flag);
             moves.emplace_back(move);
         }
@@ -155,6 +180,15 @@ std::vector<Move> getSlidingMovesWest(U64 pieces, U64 ownPieces, U64 enemyPieces
             }
 
             unsigned int flag = getFlag(i, enemyPieces);
+
+            if(flag == FLAG_CAPTURE) {
+                // Remove piece from bitboard, to prevent moves trough other
+                // pieces
+                U64 u = 1UL << i;
+                u = ~u;
+                pieces = pieces & u;
+            }
+
             Move move(i+k, i, flag);
             moves.emplace_back(move);
         }
