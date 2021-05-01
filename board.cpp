@@ -130,7 +130,17 @@ int Board::valuePosition(int team) {
     int valueRooksBlack = getCardinality(rooks[BLACK]) * VALUE_ROOK;
     value += team == WHITE ? (valueRooksWhite - valueRooksBlack) : (valueRooksBlack - valueRooksWhite);
 
+    int valueBishopsWhite = getCardinality(bishops[WHITE]) * VALUE_BISHOP;
+    int valueBishopsBlack = getCardinality(bishops[BLACK]) * VALUE_BISHOP;
+    value += team == WHITE ? (valueBishopsWhite - valueBishopsBlack) : (valueBishopsBlack - valueBishopsWhite);
 
+    int valueQueensWhite = getCardinality(queens[WHITE]) * VALUE_QUEEN;
+    int valueQueensBlack = getCardinality(queens[BLACK]) * VALUE_QUEEN;
+    value += team == WHITE ? (valueQueensWhite + valueQueensBlack) : (valueQueensBlack - valueQueensWhite);
+
+    int whiteKing = getCardinality(kings[WHITE]) * VALUE_KING;
+    int blackKing = getCardinality(kings[BLACK]) * VALUE_KING;
+    value += team == WHITE ? (whiteKing - blackKing) : (blackKing - whiteKing);
 
     return value;
 }
