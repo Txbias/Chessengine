@@ -103,6 +103,9 @@ std::vector<Move> Board::getAllMoves(int team) {
     std::vector<Move> rookMoves = Rook::getMoves(rooks[team], ownPieces, enemy);
     moves.insert(moves.end(), std::begin(rookMoves), std::end(rookMoves));
 
+    std::vector<Move> bishopMoves = Bishop::getMoves(bishops[team], ownPieces, enemy);
+    moves.insert(moves.end(), std::begin(bishopMoves), std::end(bishopMoves));
+
     return moves;
 }
 
