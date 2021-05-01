@@ -75,13 +75,13 @@ void Board::initializePieces() {
 
     unsigned long whiteKing = 0;
     setBit(whiteKing, 4);
-    queens[WHITE] = whiteKing;
+    kings[WHITE] = whiteKing;
     occupied |= whiteKing;
     white |= whiteKing;
 
     unsigned long blackKing = 0;
     setBit(blackKing, 60);
-    queens[BLACK] = blackKing;
+    kings[BLACK] = blackKing;
     occupied |= blackKing;
     black |= blackKing;
 }
@@ -108,6 +108,9 @@ std::vector<Move> Board::getAllMoves(int team) {
 
     std::vector<Move> queenMoves = Queen::getMoves(queens[team], ownPieces, enemy);
     moves.insert(moves.end(), std::begin(queenMoves), std::end(queenMoves));
+
+    std::vector<Move> kingMoves = King::getMoves(kings[team], ownPieces, enemy);
+    moves.insert(moves.end(), std::begin(kingMoves), std::end(kingMoves));
 
     return moves;
 }
