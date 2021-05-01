@@ -106,6 +106,9 @@ std::vector<Move> Board::getAllMoves(int team) {
     std::vector<Move> bishopMoves = Bishop::getMoves(bishops[team], ownPieces, enemy);
     moves.insert(moves.end(), std::begin(bishopMoves), std::end(bishopMoves));
 
+    std::vector<Move> queenMoves = Queen::getMoves(queens[team], ownPieces, enemy);
+    moves.insert(moves.end(), std::begin(queenMoves), std::end(queenMoves));
+
     return moves;
 }
 

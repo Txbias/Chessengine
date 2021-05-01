@@ -7,6 +7,7 @@
 #include "pieces/knight.h"
 #include "pieces/rook.h"
 #include "pieces/bishop.h"
+#include "pieces/queen.h"
 
 class Board {
 
