@@ -101,22 +101,20 @@ void Board::executeMove(Move move) {
 
     U64 originSquare = ~(1UL << move.getFrom());
     // Clear origin square
-    *targetPieces &= originSquare;
+    targetPieces[team] &= originSquare;
     occupied &= originSquare;
     pieces[team] &= originSquare;
 
     // Set bit at new position
     U64 target = 1UL << move.getTo();
-    *targetPieces |= target;
+    targetPieces[team] |= target;
     occupied |= target;
     pieces[team] |= target;
 
     if(move.isCapture()) {
-        move.setCapturedPiece(getPieceType(move.getTo(), ENEMY(team)));
-
         unsigned long* targetPieces = getTargetPieces(move.getTo(), ENEMY(team));
         U64 targetSquare = ~(1UL << move.getTo());
-        *targetPieces &= targetSquare;
+        targetPieces[ENEMY(team)] &= targetSquare;
         pieces[ENEMY(team)] &= targetSquare;
     }
 
@@ -139,13 +137,13 @@ void Board::undoLastMove() {
 
     // Save new position
     U64 originSquare = 1UL << move.getFrom();
-    *movedPieces |= originSquare;
+    movedPieces[team] |= originSquare;
     occupied |= originSquare;
     pieces[team] |= originSquare;
 
     // Clear position
     U64 currentPos = ~(1UL << move.getTo());
-    *movedPieces &= currentPos;
+    movedPieces[team] &= currentPos;
     occupied &= currentPos;
     pieces[team] &= currentPos;
 
