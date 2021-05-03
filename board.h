@@ -50,6 +50,8 @@ public:
 
     std::vector<Move> getAllMoves(int team);
 
+    bool inCheck(int team);
+
     void executeMove(Move move);
     void undoLastMove();
 

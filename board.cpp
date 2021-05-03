@@ -7,6 +7,10 @@ Board::Board() {
 }
 
 void Board::initializePieces() {
+
+    pieces[BLACK] = 0UL;
+    pieces[WHITE] = 0UL;
+
     unsigned long whitePawns = 0;
     whitePawns = setRow(whitePawns, 1);
     pawns[WHITE] = whitePawns;
@@ -225,6 +229,29 @@ unsigned int Board::getPieceType(unsigned int targetSquare, int team) {
 int Board::getTeam(unsigned int square) {
     U64 target = 1UL << square;
     return target & pieces[WHITE] ? WHITE : BLACK;
+}
+
+bool Board::inCheck(int team) {
+    //TODO: use attack map
+    std::vector<Move> moves = getAllMoves(ENEMY(team));
+
+    unsigned int kingPosition;
+    for(unsigned int i = 0; i < 64; i++) {
+        if(kings[team] & (1UL << i)) {
+            kingPosition = i;
+        }
+    }
+
+    for(Move move : moves) {
+        if(!move.isCapture()) {
+            continue;
+        }
+
+        if(move.getTo() == kingPosition) {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::vector<Move> Board::getAllMoves(int team) {
