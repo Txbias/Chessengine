@@ -52,5 +52,8 @@ namespace Pawn {
 
     U64 blackPawnsAble2CaptureAny(U64 blackPawns, U64 whitePieces);
 
+    std::vector<Move> getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces);
+    std::vector<Move> getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces);
+
     std::vector<Move> getMoves(U64 pawns, U64 empty, U64 enemyPieces, int team);
 }

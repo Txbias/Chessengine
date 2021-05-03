@@ -97,54 +97,75 @@ U64 Pawn::blackPawnsAble2CaptureAny(U64 blackPawns, U64 whitePieces) {
     return blackPawns & whitePawnAnyAttack(whitePieces);
 }
 
-std::vector<Move> Pawn::getMoves(U64 pawns, U64 empty, U64 enemyPieces, int team) {
+std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces) {
     std::vector<Move> moves;
 
-    U64 able2DblPush;
-    U64 able2Push;
+    U64 able2DblPush = whitePawnsAble2DblPush(pawns, empty);
+    U64 able2Push = whitePawnsAble2Push(pawns, empty);
 
-    if(team == WHITE) {
-        able2DblPush = whitePawnsAble2DblPush(pawns, empty);
-        able2Push = whitePawnsAble2Push(pawns, empty);
-    } else {
-        able2DblPush = blackPawnsAble2DblPush(pawns, empty);
-        able2Push = blackPawnsAble2Push(pawns, empty);
-    }
-
-    for (int i = 0; i < 8; i++) {
-        if (able2DblPush & (1UL << (i + 8))) {
+    for(unsigned int i = 0; i < 8; i++) {
+        if(able2DblPush & (1UL << (i + 8))) {
             Move move(i + 8, i + 24, FLAG_PAWN_DBL_PUSH);
             moves.emplace_back(move);
         }
-        if (able2Push & (1UL << (i + 8))) {
-            Move move(i + 8, i + 16, FLAG_QUIET);
+    }
+
+    for(unsigned int i = 0; i < 64; i++) {
+        if(able2Push & (1UL << i)) {
+            Move move(i, i + 8, FLAG_QUIET);
             moves.emplace_back(move);
         }
     }
 
-    U64 able2Capture;
+    U64 able2Capture = whitePawnsAble2CaptureAny(pawns, enemyPieces);
 
-    if(team == WHITE) {
-        able2Capture = whitePawnsAble2CaptureAny(pawns, enemyPieces);
-    } else {
-        able2Capture = blackPawnsAble2CaptureAny(pawns, enemyPieces);
-    }
-
-    if(team == WHITE) {
-        for (int i = 0; i < 64; i++) {
-            if (able2Capture & (1UL << i)) {
-                Move move(i, whitePawnAnyAttack(1UL << i), FLAG_CAPTURE);
-                moves.emplace_back(move);
-            }
-        }
-    } else {
-        for(int i = 0; i < 64; i++) {
-            if(able2Capture & (1UL << i)) {
-                Move move(i, blackPawnsAnyAttack(1UL << i), FLAG_CAPTURE);
-                moves.emplace_back(move);
-            }
+    for (int i = 0; i < 64; i++) {
+        if (able2Capture & (1UL << i)) {
+            Move move(i, whitePawnAnyAttack(1UL << i), FLAG_CAPTURE);
+            moves.emplace_back(move);
         }
     }
 
     return moves;
+}
+
+std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces) {
+    std::vector<Move> moves;
+
+    U64 able2DblPush = blackPawnsAble2DblPush(pawns, empty);
+    U64 able2Push= blackPawnsAble2Push(pawns, empty);
+
+    for(unsigned int i = 0; i < 8; i++) {
+        if (able2DblPush & (1UL << (i + 48))) {
+            Move move(i + 48, i + 32, FLAG_PAWN_DBL_PUSH);
+            moves.emplace_back(move);
+        }
+    }
+
+    for(unsigned int i = 0; i < 64; i++) {
+        if(able2Push & (1UL << i)) {
+            Move move(i, i - 8, FLAG_QUIET);
+            moves.emplace_back(move);
+        }
+    }
+
+    U64 able2Capture = blackPawnsAble2CaptureAny(pawns, enemyPieces);
+
+   for(int i = 0; i < 64; i++) {
+       if(able2Capture & (1UL << i)) {
+           Move move(i, blackPawnsAnyAttack(1UL << i), FLAG_CAPTURE);
+           moves.emplace_back(move);
+       }
+   }
+
+
+    return moves;
+}
+
+std::vector<Move> Pawn::getMoves(U64 pawns, U64 empty, U64 enemyPieces, int team) {
+    if(team == WHITE) {
+        return getMovesWhite(pawns, empty, enemyPieces);
+    } else {
+        return getMovesBlack(pawns, empty, enemyPieces);
+    }
 }
