@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "../utils.h"
-#include "../Move.h"
+#include "utils.h"
+#include "Move.h"
 
 
 namespace Bishop {

@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "../Move.h"
-#include "../utils.h"
+#include "Move.h"
+#include "utils.h"
 
 namespace Knight {
     typedef unsigned long U64;
