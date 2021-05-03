@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <stack>
 
 #include "Move.h"
 #include "pieces/pawns.h"
@@ -10,23 +11,29 @@
 #include "pieces/queen.h"
 #include "pieces/king.h"
 
+#define ENEMY(team) (team == 0  ? 1 : 0)
+
 class Board {
 
     typedef unsigned long U64;
 
 private:
     unsigned long occupied = 0;
-    unsigned long white = 0;
-    unsigned long black = 0;
 
     const int WHITE = 0;
     const int BLACK = 1;
 
+    std::stack<Move> moves;
+
     void initializePieces();
+    unsigned int getPieceType(unsigned int targetSquare, int team);
+    unsigned long* getTargetPieces(unsigned int targetSquare, int team);
+    int getTeam(unsigned int square);
 public:
 
     Board();
 
+    unsigned long pieces[2];
     unsigned long pawns[2];
     unsigned long knights[2];
     unsigned long bishops[2];
@@ -42,15 +49,11 @@ public:
     const int VALUE_KING = 10000;
 
     std::vector<Move> getAllMoves(int team);
+
+    void executeMove(Move move);
+    void undoLastMove();
+
     int valuePosition(int team);
-
-    inline unsigned long getWhite() const {
-        return white;
-    }
-
-    inline unsigned long getBlack() const {
-        return black;
-    }
 
     inline unsigned long getOccupied() const {
         return occupied;
