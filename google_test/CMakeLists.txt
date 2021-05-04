@@ -2,7 +2,7 @@ project(Google_tests)
 add_subdirectory(lib)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-add_executable(Google_Tests_run perft_test.cpp pawn_test.cpp rook_test.cpp bishop_test.cpp)
+add_executable(Google_Tests_run perft_test.cpp pawn_test.cpp rook_test.cpp bishop_test.cpp knight_test.cpp)
 
 target_link_libraries(Google_Tests_run engine)
 
