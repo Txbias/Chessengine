@@ -94,7 +94,7 @@ void Board::executeMove(Move move) {
 
     int team = getTeam(move.getFrom());
     if(move.isCapture()) {
-        move.setCapturedPiece(getPieceType(move.getTo(), team));
+        move.setCapturedPiece(getPieceType(move.getTo(), ENEMY(team)));
     }
 
     unsigned long *targetPieces = getTargetPieces(move.getFrom(), team);
@@ -176,8 +176,57 @@ void Board::undoLastMove() {
         pieces[enemyTeam] |= ~currentPos;
         occupied |= ~currentPos;
     }
+}
 
+void Board::printBoard() {
+    std::string row[8];
+    for(int i = 63; i >= 0; i--) {
+        if((i+1) % 8 == 0) {
+            for(int k = 0; k < 8; k++) {
+                std::cout << row[k];
+            }
+            std::cout << std::endl;
+        }
+        if(!(occupied & (1UL << i))) {
+            row[i % 8] = " ";
+            continue;
+        }
 
+        int team;
+        if(pieces[WHITE] & (1UL << i)) {
+            team = WHITE;
+        } else {
+            team = BLACK;
+        }
+
+        unsigned int type = getPieceType(i, team);
+        std::string code;
+        switch(type) {
+            case PAWN:
+                code = team == WHITE ? "\u2659" : "\u265F";
+                break;
+            case ROOK:
+                code = team == WHITE ? "\u2656" : "\u265C";
+                break;
+            case KNIGHT:
+                code = team == WHITE ? "\u2658" : "\u265E";
+                break;
+            case BISHOP:
+                code = team == WHITE ? "\u2657": "\u265D";
+                break;
+            case QUEEN:
+                code = team == WHITE ? "\u2655" : "\u265B";
+                break;
+            case KING:
+                code = team == WHITE ? "\u2654" : "\u265A";
+                break;
+        }
+        row[i % 8] = code;
+    }
+    for(int k = 0; k < 8; k++) {
+        std::cout << row[k];
+    }
+    std::cout << std::endl;
 }
 
 unsigned long * Board::getTargetPieces(unsigned int targetSquare, int team) {
@@ -220,13 +269,24 @@ unsigned int Board::getPieceType(unsigned int targetSquare, int team) {
     if(knights[team] & target) return KNIGHT;
     if(bishops[team] & target) return BISHOP;
     if(queens[team] & target) return QUEEN;
+    if(kings[team] & target) return KING;
+
+    std::cerr << "Couldn't find piece type of square " <<
+        targetSquare << " for team " << team << std::endl;
 
     return KING;
 }
 
 int Board::getTeam(unsigned int square) {
     U64 target = 1UL << square;
-    return target & pieces[WHITE] ? WHITE : BLACK;
+    if(target & pieces[WHITE]) {
+        return WHITE;
+    } else if(target & pieces[BLACK]) {
+        return BLACK;
+    } else {
+        std::cerr << "Tried team lookup on empty square!" << std::endl;
+        return WHITE;
+    }
 }
 
 bool Board::inCheck(int team) {

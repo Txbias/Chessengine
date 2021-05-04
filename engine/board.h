@@ -54,6 +54,7 @@ public:
 
     void executeMove(Move move);
     void undoLastMove();
+    void printBoard();
 
     int valuePosition(int team);
 
