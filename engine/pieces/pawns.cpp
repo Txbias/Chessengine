@@ -119,10 +119,25 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces) {
 
     U64 able2Capture = whitePawnsAble2CaptureAny(pawns, enemyPieces);
 
-    for (int i = 0; i < 64; i++) {
-        if (able2Capture & (1UL << i)) {
-            Move move(i, whitePawnAnyAttack(1UL << i), FLAG_CAPTURE);
-            moves.emplace_back(move);
+    for(unsigned int i = 0; i < 64; i++) {
+        if(able2Capture & (1UL << i)) {
+            U64 west = whitePawnsWestAttacks(1UL << i);
+            for(unsigned int k = 0; k < 64; k++) {
+                if(west & (1UL << k) & enemyPieces) {
+                    Move move(i, k, FLAG_CAPTURE);
+                    moves.emplace_back(move);
+                    break;
+                }
+            }
+
+            U64 east = whitePawnsEastAttacks(1UL << i);
+            for(unsigned int k = 0; k < 64; k++) {
+                if(east & (1UL << k) & enemyPieces) {
+                    Move move(i, k, FLAG_CAPTURE);
+                    moves.emplace_back(move);
+                    break;
+                }
+            }
         }
     }
 
@@ -151,13 +166,27 @@ std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces) {
 
     U64 able2Capture = blackPawnsAble2CaptureAny(pawns, enemyPieces);
 
-   for(int i = 0; i < 64; i++) {
+    for(unsigned int i = 0; i < 64; i++) {
        if(able2Capture & (1UL << i)) {
-           Move move(i, blackPawnsAnyAttack(1UL << i), FLAG_CAPTURE);
-           moves.emplace_back(move);
-       }
-   }
+           U64 west = blackPawnsWestAttacks(1UL << i);
+           for(unsigned int k = 0; k < 64; k++) {
+               if(west & (1UL << k) & enemyPieces) {
+                   Move move(i, k, FLAG_CAPTURE);
+                   moves.emplace_back(move);
+                   break;
+               }
+           }
 
+           U64 east = blackPawnsEastAttacks(1UL << i);
+           for(unsigned int k = 0; k < 64; k++) {
+               if(east & (1UL << k) & enemyPieces) {
+                   Move move(i, k, FLAG_CAPTURE);
+                   moves.emplace_back(move);
+                   break;
+               }
+           }
+       }
+    }
 
     return moves;
 }
