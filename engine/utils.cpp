@@ -71,147 +71,21 @@ U64 southWest(U64 bitboard){
     return westOne(southOne(bitboard));
 }
 
-
 std::vector<Move> getSlidingMovesNorth(U64 pieces, U64 ownPieces, U64 enemyPieces) {
-    std::vector<Move> moves;
-
-    while((pieces = northOne(pieces) & ~ownPieces) != 0) {
-        for(unsigned int i = 0; i < 64; i++) {
-            if(!(pieces & (1UL << i))) {
-                // No piece at current position
-                continue;
-            }
-
-            // Find origin position
-            U64 origin = 1UL << i;
-            unsigned int k = 0;
-            while(!(ownPieces & (origin >> k))) {
-                k += 8;
-            }
-
-            // Check if a enemy piece gets captured
-            unsigned int flag = getFlag(i, enemyPieces);
-
-            if(flag == FLAG_CAPTURE) {
-                // Remove piece from bitboard, to prevent moves trough other
-                // pieces
-                U64 u = 1UL << (i-k);
-                u = ~u;
-                pieces = pieces & u;
-            }
-
-            Move move(i-k, i, flag);
-            moves.emplace_back(move);
-        }
-    }
-
-    return moves;
+    return getSlidingMoves(northOne, southOne, pieces, ownPieces, enemyPieces);
 }
 
 std::vector<Move> getSlidingMovesSouth(U64 pieces, U64 ownPieces, U64 enemyPieces) {
-    std::vector<Move> moves;
-
-    while((pieces = southOne(pieces) & ~ownPieces) != 0) {
-        for(unsigned int i = 0; i < 64; i++) {
-            if(!(pieces & (1UL << i))) {
-                // No piece at current position
-                continue;
-            }
-
-            // Find origin position
-            U64 origin = 1UL << i;
-            unsigned int k = 8;
-            while(!(ownPieces & (origin << k))) {
-                k += 8;
-            }
-
-            // Check if a enemy piece gets captured
-            unsigned int flag = getFlag(i, enemyPieces);
-
-            if(flag == FLAG_CAPTURE) {
-                // Remove piece from bitboard, to prevent moves trough other
-                // pieces
-                U64 u = 1UL << (i-k);
-                u = ~u;
-                pieces = pieces & u;
-            }
-
-            Move move(i+k, i, flag);
-            moves.emplace_back(move);
-        }
-    }
-
-    return moves;
+    return getSlidingMoves(southOne, northOne, pieces, ownPieces, enemyPieces);
 }
 
 std::vector<Move> getSlidingMovesEast(U64 pieces, U64 ownPieces, U64 enemyPieces) {
-
-    std::vector<Move> moves;
-    while((pieces = eastOne(pieces) & ~ownPieces) != 0) {
-        for(unsigned int i = 0; i < 64; i++) {
-            if(!(pieces & (1UL << i))) {
-                // No piece at current position
-                continue;
-            }
-
-            //Find origin position
-            unsigned long origin = 1UL << i;
-            unsigned int k = 1;
-            while(!(ownPieces & (origin >> k))) {
-                k++;
-            }
-
-            unsigned int flag = getFlag(i, enemyPieces);
-
-            if(flag == FLAG_CAPTURE) {
-                // Remove piece from bitboard, to prevent moves trough other
-                // pieces
-                U64 u = 1UL << (i - k);
-                u = ~u;
-                pieces = pieces & u;
-            }
-
-            Move move(i-k, i, flag);
-            moves.emplace_back(move);
-        }
-    }
-
-    return moves;
+    return getSlidingMoves(eastOne, westOne, pieces, ownPieces, enemyPieces);
 }
 
+
 std::vector<Move> getSlidingMovesWest(U64 pieces, U64 ownPieces, U64 enemyPieces) {
-    std::vector<Move> moves;
-
-    while((pieces = westOne(pieces) & ~ownPieces) != 0) {
-        for(unsigned int i = 0; i < 64; i++) {
-            if(!(pieces & (1UL << i))) {
-                // No piece at current position
-                continue;
-            }
-
-            //Find origin position
-            unsigned long origin = 1UL << i;
-            unsigned int k = 1;
-            while(!(ownPieces & (origin << k))) {
-                k++;
-            }
-
-            unsigned int flag = getFlag(i, enemyPieces);
-
-            if(flag == FLAG_CAPTURE) {
-                // Remove piece from bitboard, to prevent moves trough other
-                // pieces
-                U64 u = 1UL << (i+k);
-                u = ~u;
-                pieces = pieces & u;
-            }
-
-            Move move(i+k, i, flag);
-            moves.emplace_back(move);
-        }
-    }
-
-    return moves;
+    return getSlidingMoves(westOne, eastOne, pieces, ownPieces, enemyPieces);
 }
 
 std::vector<Move> getSlidingMovesNorthEast(U64 slidingPieces, U64 ownPieces, U64 enemyPieces) {
@@ -242,6 +116,13 @@ std::vector<Move> getSlidingMoves(bitShiftFunction direction, bitShiftFunction o
                 continue;
             }
 
+            if(ownPieces & (1UL << i)) {
+                U64 u = 1UL << i;
+                u = ~u;
+                slidingPieces = slidingPieces & u;
+                continue;
+            }
+
             // Find origin position
             unsigned long origin = 1UL << i;
             while(!(ownPieces & origin)) {
@@ -265,7 +146,7 @@ std::vector<Move> getSlidingMoves(bitShiftFunction direction, bitShiftFunction o
             if(flag == FLAG_CAPTURE || ownPiecesWithoutMoving & (1UL << i)) {
                 // Remove piece from bitboard, to prevent moves trough other
                 // slidingPieces
-                U64 u = 1UL << from;
+                U64 u = 1UL << i;
                 u = ~u;
                 slidingPieces = slidingPieces & u;
             }
