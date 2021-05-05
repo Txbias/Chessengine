@@ -67,11 +67,11 @@ ull perft(Board& board, int depth, ull &captures, ull &checks) {
             if(move.isCapture()) {
                 captures++;
             }
-            std::cout << move << std::endl;
-            board.printBoard();
+
+            if(board.inCheck(ENEMY(depth % 2))) {
+                checks++;
+            }
             nodes += perft(board, depth - 1, captures, checks);
-        } else {
-            checks++;
         }
         board.undoLastMove();
     }
