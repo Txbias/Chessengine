@@ -51,6 +51,18 @@ TEST(PerftTest, DEPTH_3) {
     ASSERT_EQ(nodes, 8902);
 }
 
+TEST(PerftTest, DEPTH_4) {
+    Board board;
+
+    ull captures = 0;
+    ull checks = 0;
+    ull nodes = perft(board, 4, captures, checks);
+
+    EXPECT_EQ(captures, 1576);
+    EXPECT_EQ(checks, 469);
+    ASSERT_EQ(nodes, 197281);
+}
+
 
 ull perft(Board& board, int depth, ull &captures, ull &checks) {
 
