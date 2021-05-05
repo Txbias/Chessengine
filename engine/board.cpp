@@ -179,13 +179,18 @@ void Board::undoLastMove() {
 }
 
 void Board::printBoard() {
+    std::cout << getBoardPrintable() << std::endl;
+}
+
+std::string Board::getBoardPrintable() {
+    std::string output;
     std::string row[8];
     for(int i = 63; i >= 0; i--) {
         if((i+1) % 8 == 0) {
             for(int k = 0; k < 8; k++) {
-                std::cout << row[k];
+                output += row[k];
             }
-            std::cout << std::endl;
+            output += "\n";
         }
         if(!(occupied & (1UL << i))) {
             row[i % 8] = " ";
@@ -223,10 +228,10 @@ void Board::printBoard() {
         }
         row[i % 8] = code;
     }
-    for(int k = 0; k < 8; k++) {
-        std::cout << row[k];
+    for(auto & k : row) {
+        output += k;
     }
-    std::cout << std::endl;
+    return output;
 }
 
 unsigned long * Board::getTargetPieces(unsigned int targetSquare, int team) {
@@ -289,38 +294,69 @@ int Board::getTeam(unsigned int square) {
     }
 }
 
-bool Board::inCheck(int team) {
-    //TODO: use attack map
-
+U64 Board::getTargetMap(int team) {
+    U64 targets = 0UL;
     int enemyTeam = ENEMY(team);
-    U64 enemyTargets = 0UL;
-    enemyTargets |= Pawn::getAttackTargets(pawns[enemyTeam], enemyTeam);
-    enemyTargets |= Rook::getTargets(rooks[enemyTeam], pieces[enemyTeam], pieces[team]);
-    enemyTargets |= Knight::getTargets(knights[enemyTeam], pieces[enemyTeam]);
-    enemyTargets |= Bishop::getTargets(bishops[enemyTeam], pieces[enemyTeam], pieces[team]);
-    enemyTargets |= Queen::getTargets(queens[enemyTeam], pieces[enemyTeam], pieces[team]);
+    targets |= Pawn::getAttackTargets(pawns[team], team);
+    targets |= Rook::getTargets(rooks[team], pieces[team], pieces[enemyTeam]);
+    targets |= Knight::getTargets(knights[team], pieces[team]);
+    targets |= Bishop::getTargets(bishops[team], pieces[team], pieces[enemyTeam]);
+    targets |= Queen::getTargets(queens[team], pieces[team], pieces[enemyTeam]);
+    targets |= King::getTargets(kings[team], pieces[team]);
 
+    return targets;
+}
+
+bool Board::inCheck(int team) {
+    U64 enemyTargets = getTargetMap(ENEMY(team));
     return enemyTargets & kings[team];
+}
 
-    /*std::vector<Move> moves = getAllMoves(ENEMY(team));
+bool Board::checkMate(int team) {
+    int enemyTeam = ENEMY(team);
+    U64 enemyTargets = getTargetMap(enemyTeam);
 
-    unsigned int kingPosition;
-    for(unsigned int i = 0; i < 64; i++) {
-        if(kings[team] & (1UL << i)) {
-            kingPosition = i;
-        }
+    if(!(enemyTargets & kings[team])) {
+        // Not even check
+        return false;
     }
 
-    for(Move move : moves) {
-        if(!move.isCapture()) {
+    U64 kingTargets = King::getTargets(kings[team], pieces[team]);
+
+    kingTargets &= ~enemyTargets;
+
+    if(kingTargets) {
+        // King has squares he can move to
+        return false;
+    }
+
+    U64 ownTeamTargets = getTargetMap(team);
+    std::vector<Move> enemyMoves = getAllMoves(enemyTeam);
+
+    int attacksOnKing = 0;
+    int canBeCaptured = 0;
+    for(Move move : enemyMoves) {
+        if(!(kings[team] & (1UL << move.getTo()))) {
+            // Piece doesn't attack king
             continue;
         }
 
-        if(move.getTo() == kingPosition) {
-            return true;
+        if(ownTeamTargets & (1UL << move.getFrom())) {
+            // Attacking piece can be captured
+            canBeCaptured++;
         }
+
+        attacksOnKing++;
     }
-    return false;*/
+
+    if(attacksOnKing == 1 && canBeCaptured == 1) {
+        // the only attacking piece can be captured
+        return false;
+    }
+
+    // TODO: finish
+
+    return true;
 }
 
 std::vector<Move> Board::getAllMoves(int team) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 
 #define PAWN 0
 #define ROOK 1
@@ -56,6 +57,19 @@ public:
         char file = fileInt + 97;
 
         return file + std::to_string(row);
+    }
+
+    static Move fromNotation(const std::string& notation) {
+        //TODO: flag
+        int x = (notation.at(0) - 97);
+        int y = std::stoi(notation.substr(1, 2));
+        unsigned int from = ((y-1) * 8) + x;
+
+        x = (notation.at(2) - 97);
+        y = std::stoi(notation.substr(3));
+        unsigned int to = ((y-1) * 8) + x;
+
+        return Move(from, to, 0);
     }
 
 private:

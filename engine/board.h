@@ -29,6 +29,8 @@ private:
     unsigned int getPieceType(unsigned int targetSquare, int team);
     unsigned long* getTargetPieces(unsigned int targetSquare, int team);
     int getTeam(unsigned int square);
+    U64 getTargetMap(int team);
+
 public:
 
     Board();
@@ -51,10 +53,12 @@ public:
     std::vector<Move> getAllMoves(int team);
 
     bool inCheck(int team);
+    bool checkMate(int team);
 
     void executeMove(Move move);
     void undoLastMove();
     void printBoard();
+    std::string getBoardPrintable();
 
     int valuePosition(int team);
 
