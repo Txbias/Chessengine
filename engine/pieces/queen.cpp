@@ -26,3 +26,22 @@ std::vector<Move> Queen::getMoves(U64 queens, U64 ownPieces, U64 enemyPieces) {
 
     return moves;
 }
+
+U64 Queen::getTargets(U64 queens, U64 ownPieces, U64 enemyPieces) {
+
+    U64 targets = 0UL;
+    std::vector<bitShiftFunction> directions = {
+            northOne, southOne, eastOne, westOne,
+            northEast, northWest, southEast, southWest
+    };
+
+    for(auto direction : directions) {
+        U64 queensCopy = queens;
+        while((queensCopy = (direction(queensCopy) & ~ownPieces)) != 0) {
+            targets |= queensCopy;
+            queensCopy &= ~enemyPieces;
+        }
+    }
+
+    return targets;
+}
