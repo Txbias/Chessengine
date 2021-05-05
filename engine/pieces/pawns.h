@@ -48,6 +48,8 @@ namespace Pawn {
 
     U64 blackPawnsAnyAttack(U64 pawns);
 
+    U64 getAttackTargets(U64 pawns, int team);
+
     U64 whitePawnsAble2CaptureAny(U64 whitePawns, U64 blackPieces);
 
     U64 blackPawnsAble2CaptureAny(U64 blackPawns, U64 whitePieces);

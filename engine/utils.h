@@ -37,6 +37,9 @@ std::vector<Move> getSlidingMovesSouthWest(U64 pieces, U64 ownPieces, U64 enemyP
 std::vector<Move> getSlidingMoves(bitShiftFunction direction, bitShiftFunction oppositeDirection,
                                   U64 slidingPieces, U64 OwnPieces, U64 enemyPieces);
 
+U64 getSlidingTargets(U64 slidingPieces, U64 ownPieces, U64 enemyPieces,
+                      const std::vector<bitShiftFunction>& directions);
+
 const U64 notAFile = ~setFile(0UL, 0);
 const U64 notHFile = ~setFile(0UL, 7);
 const U64 not1Row = ~setRow(0UL, 0);

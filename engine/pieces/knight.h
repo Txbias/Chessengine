@@ -23,7 +23,7 @@ namespace Knight {
 
     std::string getBits(U64 bitboard);
 
-    U64 getKnightTargets(U64 knights, U64 ownPieces);
+    U64 getTargets(U64 knights, U64 ownPieces);
     U64 getOriginKnights(U64 knights, U64 target, U64 ownPieces);
 
     std::vector<Move> getMoves(U64 knights, U64 enemyPieces, U64 ownPieces);

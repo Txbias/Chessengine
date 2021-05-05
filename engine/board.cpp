@@ -291,7 +291,18 @@ int Board::getTeam(unsigned int square) {
 
 bool Board::inCheck(int team) {
     //TODO: use attack map
-    std::vector<Move> moves = getAllMoves(ENEMY(team));
+
+    int enemyTeam = ENEMY(team);
+    U64 enemyTargets = 0UL;
+    enemyTargets |= Pawn::getAttackTargets(pawns[enemyTeam], enemyTeam);
+    enemyTargets |= Rook::getTargets(rooks[enemyTeam], pieces[enemyTeam], pieces[team]);
+    enemyTargets |= Knight::getTargets(knights[enemyTeam], pieces[enemyTeam]);
+    enemyTargets |= Bishop::getTargets(bishops[enemyTeam], pieces[enemyTeam], pieces[team]);
+    enemyTargets |= Queen::getTargets(queens[enemyTeam], pieces[enemyTeam], pieces[team]);
+
+    return enemyTargets & kings[team];
+
+    /*std::vector<Move> moves = getAllMoves(ENEMY(team));
 
     unsigned int kingPosition;
     for(unsigned int i = 0; i < 64; i++) {
@@ -309,7 +320,7 @@ bool Board::inCheck(int team) {
             return true;
         }
     }
-    return false;
+    return false;*/
 }
 
 std::vector<Move> Board::getAllMoves(int team) {

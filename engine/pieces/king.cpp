@@ -10,19 +10,7 @@ std::vector<Move> King::getMoves(U64 king, U64 ownPieces, U64 enemyPieces) {
         }
     }
 
-    U64 attackedFields = 0UL;
-
-    attackedFields |= northOne(king);
-    attackedFields |= southOne(king);
-    attackedFields |= westOne(king);
-    attackedFields |= eastOne(king);
-
-    attackedFields |= northEast(king);
-    attackedFields |= northWest(king);
-    attackedFields |= southEast(king);
-    attackedFields |= southWest(king);
-
-    attackedFields &= ~ownPieces;
+    U64 attackedFields = getTargets(king, ownPieces);
 
     std::vector<Move> moves;
 
@@ -38,4 +26,22 @@ std::vector<Move> King::getMoves(U64 king, U64 ownPieces, U64 enemyPieces) {
     }
 
     return moves;
+}
+
+U64 King::getTargets(U64 king, U64 ownPieces) {
+    U64 attackedFields = 0UL;
+
+    attackedFields |= northOne(king);
+    attackedFields |= southOne(king);
+    attackedFields |= westOne(king);
+    attackedFields |= eastOne(king);
+
+    attackedFields |= northEast(king);
+    attackedFields |= northWest(king);
+    attackedFields |= southEast(king);
+    attackedFields |= southWest(king);
+
+    attackedFields &= ~ownPieces;
+
+    return attackedFields;
 }

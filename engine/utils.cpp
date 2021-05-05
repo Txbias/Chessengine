@@ -163,3 +163,18 @@ std::vector<Move> getSlidingMoves(bitShiftFunction direction, bitShiftFunction o
 
     return moves;
 }
+
+U64 getSlidingTargets(U64 slidingPieces, U64 ownPieces, U64 enemyPieces,
+                      const std::vector<bitShiftFunction>& directions) {
+
+    U64 targets = 0UL;
+    for(auto direction : directions) {
+        U64 piecesCopy = slidingPieces;
+        while((piecesCopy = (direction(piecesCopy) & ~ownPieces)) != 0) {
+            targets |= piecesCopy;
+            piecesCopy &= ~enemyPieces;
+        }
+    }
+
+    return targets;
+}

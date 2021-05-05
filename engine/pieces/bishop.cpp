@@ -16,3 +16,11 @@ std::vector<Move> Bishop::getMoves(U64 bishops, U64 ownPieces, U64 enemyPieces) 
 
     return moves;
 }
+
+U64 Bishop::getTargets(U64 bishops, U64 ownPieces, U64 enemyPieces) {
+    std::vector<bitShiftFunction> directions = {
+            northEast, northWest, southEast, southWest
+    };
+
+    return getSlidingTargets(bishops, ownPieces, enemyPieces, directions);
+}

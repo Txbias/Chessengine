@@ -12,7 +12,7 @@ U64 Knight::soWeWe(U64 b) {return (b >> 10) & notGHFile;}
 U64 Knight::soSoWe(U64 b) {return (b >> 17) & notHFile ;}
 
 
-U64 Knight::getKnightTargets(U64 knights, U64 ownPieces) {
+U64 Knight::getTargets(U64 knights, U64 ownPieces) {
     U64 targets = noNoEa(knights);
     targets |= noEaEa(knights);
     targets |= soEaEa(knights);
@@ -39,7 +39,7 @@ std::string getBits(U64 bitboard) {
 
 U64 Knight::getOriginKnights(U64 knights, U64 target, U64 ownPieces) {
     // ownPieces has to be inverted
-    U64 possibleFields = getKnightTargets(target, ~ownPieces);
+    U64 possibleFields = getTargets(target, ~ownPieces);
     return possibleFields & knights;
 }
 
@@ -47,7 +47,7 @@ U64 Knight::getOriginKnights(U64 knights, U64 target, U64 ownPieces) {
 std::vector<Move> Knight::getMoves(U64 knights, U64 enemyPieces, U64 ownPieces) {
     std::vector<Move> moves;
 
-    U64 knightTargets = getKnightTargets(knights, ownPieces);
+    U64 knightTargets = getTargets(knights, ownPieces);
 
     for(int i = 0; i < 64; i++) {
         if(knightTargets & (1UL << i)) {

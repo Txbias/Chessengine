@@ -19,3 +19,11 @@ std::vector<Move> Rook::getMoves(U64 rooks, U64 ownPieces, U64 enemyPieces) {
 
     return moves;
 }
+
+U64 Rook::getTargets(U64 rooks, U64 ownPieces, U64 enemyPieces) {
+    std::vector<bitShiftFunction> directions = {
+            northOne, eastOne, westOne, southOne
+    };
+
+    return getSlidingTargets(rooks, ownPieces, enemyPieces, directions);
+}

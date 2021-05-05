@@ -89,6 +89,10 @@ U64 Pawn::blackPawnsAnyAttack(U64 pawns) {
     return blackPawnsEastAttacks(pawns) | blackPawnsWestAttacks(pawns);
 }
 
+U64 Pawn::getAttackTargets(U64 pawns, int team) {
+    return team == WHITE ? whitePawnAnyAttack(pawns) : blackPawnsAnyAttack(pawns);
+}
+
 U64 Pawn::whitePawnsAble2CaptureAny(U64 whitePawns, U64 blackPieces) {
     return whitePawns & blackPawnsAnyAttack(blackPieces);
 }
