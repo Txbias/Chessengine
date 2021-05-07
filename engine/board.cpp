@@ -1,5 +1,6 @@
 #include "board.h"
 
+#define SEARCH_DEPTH 3
 
 Board::Board() {
     initializePieces();
@@ -93,11 +94,27 @@ void Board::initializePieces() {
 void Board::executeMove(Move move) {
 
     int team = getTeam(move.getFrom());
+    actingTeam = ENEMY(team);
+    unsigned long *targetPieceEnemy = getTargetPieces(move.getTo(), ENEMY(team));
+
+    if(targetPieceEnemy != nullptr) {
+        move.setFlags(FLAG_CAPTURE);
+    }
+
     if(move.isCapture()) {
-        move.setCapturedPiece(getPieceType(move.getTo(), ENEMY(team)));
+        unsigned int pieceType = getPieceType(move.getTo(), ENEMY(team));
+        if(pieceType == -1) {
+            std::cerr << "Des ist net gut" << std::endl;
+        }
+
+        move.setCapturedPiece(pieceType);
     }
 
     unsigned long *targetPieces = getTargetPieces(move.getFrom(), team);
+
+    if(targetPieces == nullptr) {
+        printBoard();
+    }
 
     U64 originSquare = ~(1UL << move.getFrom());
     // Clear origin square
@@ -132,6 +149,8 @@ void Board::undoLastMove() {
 
     int team = getTeam(move.getTo());
     int enemyTeam = ENEMY(team);
+
+    actingTeam = enemyTeam;
 
     unsigned long* movedPieces = getTargetPieces(move.getTo(), team);
 
@@ -205,6 +224,11 @@ std::string Board::getBoardPrintable() {
         }
 
         unsigned int type = getPieceType(i, team);
+
+        if(type == -1) {
+            std::cerr << "Des ist auch net gut" << std::endl;
+        }
+
         std::string code;
         switch(type) {
             case PAWN:
@@ -237,7 +261,7 @@ std::string Board::getBoardPrintable() {
 unsigned long * Board::getTargetPieces(unsigned int targetSquare, int team) {
     unsigned int pieceType = getPieceType(targetSquare, team);
 
-    unsigned long *targetPieces;
+    unsigned long *targetPieces = nullptr;
     switch(pieceType) {
         case PAWN:
             targetPieces = pawns;
@@ -259,9 +283,6 @@ unsigned long * Board::getTargetPieces(unsigned int targetSquare, int team) {
             break;
     }
 
-    if(targetPieces == nullptr) {
-        std::cerr << "Piece type couldn't be detected" << std::endl;
-    }
 
     return targetPieces;
 }
@@ -276,10 +297,8 @@ unsigned int Board::getPieceType(unsigned int targetSquare, int team) {
     if(queens[team] & target) return QUEEN;
     if(kings[team] & target) return KING;
 
-    std::cerr << "Couldn't find piece type of square " <<
-        targetSquare << " for team " << team << std::endl;
 
-    return KING;
+    return -1;
 }
 
 int Board::getTeam(unsigned int square) {
@@ -388,6 +407,51 @@ std::vector<Move> Board::getAllMoves(int team) {
     return moves;
 }
 
+Move Board::getBestMove(int team) {
+    int actingTeamBefore = actingTeam;
+    actingTeam = team;
+
+    Move bestMove(0, 0, 0);
+    alphaBeta(INT16_MIN / 2, INT16_MAX / 2, SEARCH_DEPTH, team, bestMove);
+
+    actingTeam = actingTeamBefore;
+    return bestMove;
+}
+
+int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove) {
+    if(depthLeft == 0) {
+        return valuePosition(actingTeam);
+    }
+
+    std::vector<Move> allMoves = getAllMoves(actingTeam);
+
+    for(int i = 0; i < allMoves.size(); i++) {
+        executeMove(allMoves[i]);
+
+        if(depthLeft == SEARCH_DEPTH) {
+            if(inCheck(actingTeam)) {
+                undoLastMove();
+                continue;
+            }
+        }
+
+        int score = -alphaBeta(-beta, -alpha, depthLeft - 1, team, bestMove);
+        if(score >= beta) {
+            undoLastMove();
+            return beta;
+        }
+        if(score > alpha) {
+            alpha = score;
+            if(actingTeam == team) {
+                bestMove = allMoves[i];
+            }
+        }
+        undoLastMove();
+    }
+
+    return alpha;
+}
+
 int Board::valuePosition(int team) {
     int value = 0;
 
@@ -409,7 +473,7 @@ int Board::valuePosition(int team) {
 
     int valueQueensWhite = getCardinality(queens[WHITE]) * VALUE_QUEEN;
     int valueQueensBlack = getCardinality(queens[BLACK]) * VALUE_QUEEN;
-    value += team == WHITE ? (valueQueensWhite + valueQueensBlack) : (valueQueensBlack - valueQueensWhite);
+    value += team == WHITE ? (valueQueensWhite - valueQueensBlack) : (valueQueensBlack - valueQueensWhite);
 
     int whiteKing = getCardinality(kings[WHITE]) * VALUE_KING;
     int blackKing = getCardinality(kings[BLACK]) * VALUE_KING;

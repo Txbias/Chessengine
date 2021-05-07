@@ -23,6 +23,8 @@ private:
     const int WHITE = 0;
     const int BLACK = 1;
 
+    int actingTeam = -1;
+
     std::stack<Move> moves;
 
     void initializePieces();
@@ -30,6 +32,7 @@ private:
     unsigned long* getTargetPieces(unsigned int targetSquare, int team);
     int getTeam(unsigned int square);
     U64 getTargetMap(int team);
+    int alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove);
 
 public:
 
@@ -51,6 +54,7 @@ public:
     const int VALUE_KING = 10000;
 
     std::vector<Move> getAllMoves(int team);
+    Move getBestMove(int team);
 
     bool inCheck(int team);
     bool checkMate(int team);

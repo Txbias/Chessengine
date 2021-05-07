@@ -38,11 +38,13 @@ int main() {
 
             Logger::debug(board.getBoardPrintable());
 
-            std::vector<Move> moves = board.getAllMoves(1);
-            std::cout << "move " << Move::toNotation(moves[0].getFrom())
-                    << Move::toNotation(moves[0].getTo()) << std::endl;
+            Move bestMove = board.getBestMove(1);
+            std::cout << "move " << Move::toNotation(bestMove.getFrom())
+                    << Move::toNotation(bestMove.getTo()) << std::endl;
 
-            board.executeMove(moves[0]);
+            board.executeMove(bestMove);
+            std::cout << "Value white: " << board.valuePosition(0) << std::endl;
+            std::cout << "Value black: " << board.valuePosition(1) << std::endl;
 
             Logger::debug(board.getBoardPrintable());
 

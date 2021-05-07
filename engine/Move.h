@@ -46,6 +46,10 @@ public:
         return (m_move & CAPTURE_FLAG) != 0;
     }
 
+    void setFlags(unsigned int flags) {
+        m_move = ((flags & 0xf) << 12) | ((getFrom() & 0x3f) << 6) | (getTo() & 0x3f);
+    }
+
     void setCapturedPiece(unsigned int captured) {
         this->captured = captured;
     }
