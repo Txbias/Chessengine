@@ -12,6 +12,15 @@ void Board::initializePieces() {
     pieces[BLACK] = 0UL;
     pieces[WHITE] = 0UL;
 
+    kingMoved[WHITE] = false;
+    kingMoved[BLACK] = false;
+
+    for(int i = 0; i < 2; i++) {
+        for(int k = 0; k < 2; k++) {
+            rookMoved[i][k] = false;
+        }
+    }
+
     unsigned long whitePawns = 0;
     whitePawns = setRow(whitePawns, 1);
     pawns[WHITE] = whitePawns;
@@ -118,7 +127,58 @@ void Board::executeMove(Move move) {
     unsigned long *targetPieces = getTargetPieces(move.getFrom(), team);
 
     if(targetPieces == nullptr) {
+        std::cout << "nullptr" << std::endl;
+        std::cout << "tried move: " << Move::toNotation(move) << std::endl;
+        std::cout << "team: " << team << std::endl;
+        std::cout << "flags: " << move.getFlags() << std::endl;
         printBoard();
+    }
+
+    if(targetPieces == kings) {
+        if(move.getFrom() / 8 == 0 && move.getTo() / 8 == 0 && team == WHITE && move.getFrom() == 4) {
+            if(move.getTo() == 6) {
+                move.setFlags(FLAG_KING_CASTLE);
+            } else if(move.getTo() == 2) {
+                move.setFlags(FLAG_QUEEN_CASTLE);
+            }
+        }
+
+        if(move.getFrom() / 8 == 7 && move.getTo() / 8 == 7 && team == BLACK && move.getFrom() == 60) {
+            if(move.getTo() == 62) {
+                move.setFlags(FLAG_KING_CASTLE);
+            } else if(move.getTo() == 58) {
+                move.setFlags(FLAG_QUEEN_CASTLE);
+            }
+        }
+    }
+
+    if(targetPieces == kings) {
+        if(!kingMoved[team]) {
+            kingMoved[team] = true;
+            move.setInitialMoveKing();
+        }
+    } else if(targetPieces == rooks) {
+        if(move.getFrom() == 0 && team == WHITE) {
+            if(!rookMoved[WHITE][0]) {
+                move.setInitialMoveRook();
+                rookMoved[WHITE][0] = true;
+            }
+        } else if(move.getFrom() == 7 && team == WHITE) {
+            if(!rookMoved[WHITE][1]) {
+                move.setInitialMoveRook();
+                rookMoved[WHITE][1] = true;
+            }
+        } else if(move.getFrom() == 56 && team == BLACK) {
+            if(!rookMoved[BLACK][0]) {
+                move.setInitialMoveRook();
+                rookMoved[BLACK][0] = true;
+            }
+        } else if(move.getFrom() == 63 && team == BLACK) {
+            if(!rookMoved[BLACK][1]) {
+                move.setInitialMoveRook();
+                rookMoved[BLACK][1] = true;
+            }
+        }
     }
 
     U64 originSquare = ~(1UL << move.getFrom());
@@ -138,6 +198,46 @@ void Board::executeMove(Move move) {
     }
     occupied |= target;
     pieces[team] |= target;
+
+    if(move.isCastle()) {
+        U64 originSquare;
+        U64 targetSquare;
+        if(move.getFlags() == FLAG_KING_CASTLE) {
+            // Move rook
+            if(team == WHITE) {
+                originSquare = ~(1UL << 7);
+            } else if(team == BLACK) {
+                originSquare = ~(1UL << 63);
+            }
+
+            if(team == WHITE) {
+                targetSquare = 1UL << 5;
+            } else if(team == BLACK) {
+                targetSquare = 1UL << 61;
+            }
+
+        } else if(move.getFlags() == FLAG_QUEEN_CASTLE) {
+            if(team == WHITE) {
+                originSquare = ~1UL;
+            } else if(team == BLACK) {
+                originSquare = ~(1UL << 56);
+            }
+
+            if(team == WHITE) {
+                targetSquare = 1UL << 3;
+            } else if(team == BLACK) {
+                targetSquare = 1UL << 59;
+            }
+        }
+
+        rooks[team] &= originSquare;
+        occupied &= originSquare;
+        pieces[team] &= originSquare;
+
+        rooks[team] |= targetSquare;
+        occupied |= targetSquare;
+        pieces[team] |= targetSquare;
+    }
 
     if(move.isCapture()) {
         unsigned long* targetPieces = getTargetPieces(move.getTo(), ENEMY(team));
@@ -180,6 +280,62 @@ void Board::undoLastMove() {
     movedPieces[team] &= currentPos;
     occupied &= currentPos;
     pieces[team] &= currentPos;
+
+    if(move.isInitialMoveKing()) {
+        kingMoved[team] = false;
+    } else if(move.isInitialMoveRook()) {
+        if(move.getFrom() == 0 && team == WHITE) {
+            rookMoved[WHITE][0] = false;
+        } else if(move.getFrom() == 7 && team == WHITE) {
+            rookMoved[WHITE][1] = false;
+        } else if(move.getFrom() == 56 && team == BLACK) {
+            rookMoved[BLACK][0] = false;
+        } else if(move.getFrom() == 63 && team == BLACK) {
+            rookMoved[BLACK][1] = false;
+        } else {
+            std::cerr << "Move is supposed to be initial Move for king or rook but it isn't" << std::endl;
+        }
+    }
+
+    if(move.isCastle()) {
+        U64 originSquare;
+        U64 targetSquare;
+        if(move.getFlags() == FLAG_KING_CASTLE) {
+            // Move rook
+            if(team == WHITE) {
+                originSquare = ~(1UL << 5);
+            } else if(team == BLACK) {
+                originSquare = ~(1UL << 61);
+            }
+
+            if(team == WHITE) {
+                targetSquare = 1UL << 7;
+            } else if(team == BLACK) {
+                targetSquare = 1UL << 63;
+            }
+
+        } else if(move.getFlags() == FLAG_QUEEN_CASTLE) {
+            if(team == WHITE) {
+                originSquare = ~(1UL << 3);
+            } else if(team == BLACK) {
+                originSquare = ~(1UL << 59);
+            }
+
+            if(team == WHITE) {
+                targetSquare = 1UL;
+            } else if(team == BLACK) {
+                targetSquare = 1UL << 56;
+            }
+        }
+
+        rooks[team] &= originSquare;
+        occupied &= originSquare;
+        pieces[team] &= originSquare;
+
+        rooks[team] |= targetSquare;
+        occupied |= targetSquare;
+        pieces[team] |= targetSquare;
+    }
 
     if(move.isCapture()) {
         unsigned int capturedPiece = move.getCapturedPiece();
@@ -418,6 +574,10 @@ std::vector<Move> Board::getAllMoves(int team) {
 
     std::vector<Move> kingMoves = King::getMoves(kings[team], ownPieces, enemyPieces);
     moves.insert(moves.end(), std::begin(kingMoves), std::end(kingMoves));
+
+    std::vector<Move> castleMoves = King::getCastlingMoves(occupied, getTargetMap(enemyTeam),
+                                                           team, kingMoved, rookMoved);
+    moves.insert(moves.end(), std::begin(castleMoves), std::end(castleMoves));
 
     return moves;
 }

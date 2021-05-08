@@ -12,6 +12,8 @@
 
 #define FLAG_QUIET 0
 #define FLAG_PAWN_DBL_PUSH 1
+#define FLAG_KING_CASTLE 2
+#define FLAG_QUEEN_CASTLE 3
 #define FLAG_CAPTURE 4
 #define FLAG_QUEEN_PROMOTION 11
 #define FLAG_QUEEN_PROMOTION_CAPTURE 15
@@ -56,12 +58,32 @@ public:
         return getFlags() & (1U << 3);
     }
 
+    bool isCastle() const {
+        return getFlags() == FLAG_QUEEN_CASTLE || getFlags() == FLAG_KING_CASTLE;
+    }
+
+    bool isInitialMoveKing() const{
+        return initialMoveKing;
+    }
+
+    bool isInitialMoveRook() const{
+        return initialMoveRook;
+    }
+
     void setFlags(unsigned int flags) {
         m_move = ((flags & 0xf) << 12) | ((getFrom() & 0x3f) << 6) | (getTo() & 0x3f);
     }
 
     void setCapturedPiece(unsigned int captured) {
         this->captured = captured;
+    }
+
+    void setInitialMoveKing() {
+        initialMoveKing = true;
+    }
+
+    void setInitialMoveRook() {
+        initialMoveRook = true;
     }
 
     static std::string toNotation(unsigned int position) {
@@ -115,6 +137,8 @@ public:
 private:
     unsigned int m_move;
     unsigned int captured;
+    bool initialMoveKing = false;
+    bool initialMoveRook = false;
 
     const static unsigned int CAPTURE_FLAG = (1Ul << 14);
 

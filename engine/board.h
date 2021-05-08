@@ -46,6 +46,9 @@ public:
     unsigned long queens[2];
     unsigned long kings[2];
 
+    bool kingMoved[2];
+    bool rookMoved[2][2];
+
     const int VALUE_PAWN = 100;
     const int VALUE_KNIGHT = 350;
     const int VALUE_BISHOP = 350;
