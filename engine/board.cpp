@@ -1,6 +1,6 @@
 #include "board.h"
 
-#define SEARCH_DEPTH 3
+#define SEARCH_DEPTH 4
 
 Board::Board() {
     initializePieces();
@@ -444,24 +444,23 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
         executeMove(allMoves[i]);
 
         if(depthLeft == SEARCH_DEPTH) {
-            if(inCheck(actingTeam)) {
+            if(inCheck(ENEMY(actingTeam))) {
                 undoLastMove();
                 continue;
             }
         }
 
         int score = -alphaBeta(-beta, -alpha, depthLeft - 1, team, bestMove);
+        undoLastMove();
         if(score >= beta) {
-            undoLastMove();
             return beta;
         }
         if(score > alpha) {
             alpha = score;
-            if(actingTeam == team) {
+            if(actingTeam == ENEMY(team) && depthLeft == SEARCH_DEPTH) {
                 bestMove = allMoves[i];
             }
         }
-        undoLastMove();
     }
 
     return alpha;
