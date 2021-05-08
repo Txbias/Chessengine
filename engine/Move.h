@@ -10,6 +10,12 @@
 #define QUEEN 4
 #define KING 5
 
+#define FLAG_QUIET 0
+#define FLAG_PAWN_DBL_PUSH 1
+#define FLAG_CAPTURE 4
+#define FLAG_QUEEN_PROMOTION 11
+#define FLAG_QUEEN_PROMOTION_CAPTURE 15
+
 class Move {
 public:
     Move(unsigned int from, unsigned int to, unsigned int flags) {
@@ -46,6 +52,10 @@ public:
         return (m_move & CAPTURE_FLAG) != 0;
     }
 
+    bool isPromotion() const {
+        return getFlags() & (1U << 3);
+    }
+
     void setFlags(unsigned int flags) {
         m_move = ((flags & 0xf) << 12) | ((getFrom() & 0x3f) << 6) | (getTo() & 0x3f);
     }
@@ -63,6 +73,20 @@ public:
         return file + std::to_string(row);
     }
 
+    static std::string toNotation(Move move) {
+        std::string result;
+
+        result += toNotation(move.getFrom());
+        result += toNotation(move.getTo());
+
+        if(move.isPromotion()) {
+            //TODO: for all types of promotions
+            result += "q";
+        }
+
+        return result;
+    }
+
     static Move fromNotation(const std::string& notation) {
         //TODO: flag
         int x = (notation.at(0) - 97);
@@ -73,7 +97,19 @@ public:
         y = std::stoi(notation.substr(3));
         unsigned int to = ((y-1) * 8) + x;
 
-        return Move(from, to, 0);
+        unsigned int flag = FLAG_QUIET;
+
+        if(notation.length() == 5) {
+            // Promotion
+            if(notation.at(4) == 'q') {
+                flag = FLAG_QUEEN_PROMOTION;
+            } else {
+                std::cerr << "Unknown promotion piece: " << notation.at(4) << std::endl;
+            }
+
+        }
+
+        return Move(from, to, flag);
     }
 
 private:

@@ -6,6 +6,9 @@
 #define FLAG_QUIET 0
 #define FLAG_PAWN_DBL_PUSH 1
 #define FLAG_CAPTURE 4
+#define FLAG_QUEEN_PROMOTION 11
+#define FLAG_QUEEN_PROMOTION_CAPTURE 15
+
 typedef unsigned long U64;
 typedef U64(*bitShiftFunction)(U64);
 

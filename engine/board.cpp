@@ -98,7 +98,12 @@ void Board::executeMove(Move move) {
     unsigned long *targetPieceEnemy = getTargetPieces(move.getTo(), ENEMY(team));
 
     if(targetPieceEnemy != nullptr) {
-        move.setFlags(FLAG_CAPTURE);
+        //TODO: for all promotions
+        if(move.isPromotion()) {
+            move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
+        } else {
+            move.setFlags(FLAG_CAPTURE);
+        }
     }
 
     if(move.isCapture()) {
@@ -124,7 +129,13 @@ void Board::executeMove(Move move) {
 
     // Set bit at new position
     U64 target = 1UL << move.getTo();
-    targetPieces[team] |= target;
+
+    if(move.isPromotion()) {
+        // TODO: for all types of promotions
+        queens[team] |= target;
+    } else {
+        targetPieces[team] |= target;
+    }
     occupied |= target;
     pieces[team] |= target;
 
@@ -156,7 +167,11 @@ void Board::undoLastMove() {
 
     // Save new position
     U64 originSquare = 1UL << move.getFrom();
-    movedPieces[team] |= originSquare;
+    if(move.isPromotion()) {
+        pawns[team] |= originSquare;
+    } else {
+        movedPieces[team] |= originSquare;
+    }
     occupied |= originSquare;
     pieces[team] |= originSquare;
 

@@ -116,8 +116,14 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces) {
 
     for(unsigned int i = 0; i < 64; i++) {
         if(able2Push & (1UL << i)) {
-            Move move(i, i + 8, FLAG_QUIET);
-            moves.emplace_back(move);
+            if((i + 8) / 8 != 7) {
+                Move move(i, i + 8, FLAG_QUIET);
+                moves.emplace_back(move);
+            } else {
+                // Pawn promotion
+                Move move(i, i + 8, FLAG_QUEEN_PROMOTION);
+                moves.emplace_back(move);
+            }
         }
     }
 
@@ -128,8 +134,14 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces) {
             U64 west = whitePawnsWestAttacks(1UL << i);
             for(unsigned int k = 0; k < 64; k++) {
                 if(west & (1UL << k) & enemyPieces) {
-                    Move move(i, k, FLAG_CAPTURE);
-                    moves.emplace_back(move);
+                    if(k / 8 != 7) {
+                        Move move(i, k, FLAG_CAPTURE);
+                        moves.emplace_back(move);
+                    } else {
+                        // Pawn promotion
+                        Move move(i, k, FLAG_QUEEN_PROMOTION_CAPTURE);
+                        moves.emplace_back(move);
+                    }
                     break;
                 }
             }
@@ -137,8 +149,14 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces) {
             U64 east = whitePawnsEastAttacks(1UL << i);
             for(unsigned int k = 0; k < 64; k++) {
                 if(east & (1UL << k) & enemyPieces) {
-                    Move move(i, k, FLAG_CAPTURE);
-                    moves.emplace_back(move);
+                    if(k / 8 != 7) {
+                        Move move(i, k, FLAG_CAPTURE);
+                        moves.emplace_back(move);
+                    } else {
+                        // Pawn promotion
+                        Move move(i, k, FLAG_QUEEN_PROMOTION_CAPTURE);
+                        moves.emplace_back(move);
+                    }
                     break;
                 }
             }
@@ -163,8 +181,13 @@ std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces) {
 
     for(unsigned int i = 0; i < 64; i++) {
         if(able2Push & (1UL << i)) {
-            Move move(i, i - 8, FLAG_QUIET);
-            moves.emplace_back(move);
+            if((i - 8) / 8 != 0) {
+                Move move(i, i - 8, FLAG_QUIET);
+                moves.emplace_back(move);
+            } else {
+                Move move(i, i - 8, FLAG_QUEEN_PROMOTION);
+                moves.emplace_back(move);
+            }
         }
     }
 
@@ -175,8 +198,14 @@ std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces) {
            U64 west = blackPawnsWestAttacks(1UL << i);
            for(unsigned int k = 0; k < 64; k++) {
                if(west & (1UL << k) & enemyPieces) {
-                   Move move(i, k, FLAG_CAPTURE);
-                   moves.emplace_back(move);
+                   if(k / 8 != 0) {
+                       Move move(i, k, FLAG_CAPTURE);
+                       moves.emplace_back(move);
+                   } else {
+                       // Pawn promotion
+                       Move move(i, k, FLAG_QUEEN_PROMOTION_CAPTURE);
+                       moves.emplace_back(move);
+                   }
                    break;
                }
            }
@@ -184,8 +213,14 @@ std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces) {
            U64 east = blackPawnsEastAttacks(1UL << i);
            for(unsigned int k = 0; k < 64; k++) {
                if(east & (1UL << k) & enemyPieces) {
-                   Move move(i, k, FLAG_CAPTURE);
-                   moves.emplace_back(move);
+                   if(k / 8 != 0) {
+                       Move move(i, k, FLAG_CAPTURE);
+                       moves.emplace_back(move);
+                   } else {
+                       // Pawn promotion
+                       Move move(i, k, FLAG_QUEEN_PROMOTION_CAPTURE);
+                       moves.emplace_back(move);
+                   }
                    break;
                }
            }
