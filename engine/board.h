@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <stack>
+#include <cctype>
 
 #include "Move.h"
 #include "pieces/pawns.h"
@@ -35,6 +36,7 @@ private:
 public:
 
     Board();
+    Board(const std::string& fen);
 
     std::stack<Move> moves;
 

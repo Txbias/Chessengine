@@ -1,10 +1,115 @@
 #include "board.h"
 
-#define SEARCH_DEPTH 4
+#define SEARCH_DEPTH 1
 
 Board::Board() {
     initializePieces();
 
+}
+
+Board::Board(const std::string& fen) {
+
+    occupied = 0UL;
+
+    for(int i = 0; i <= 1; i++) {
+        pieces[i] = 0UL;
+        pawns[i] = 0UL;
+        knights[i] = 0UL;
+        rooks[i] = 0UL;
+        bishops[i] = 0UL;
+        queens[i] = 0UL;
+        kings[i] = 0UL;
+    }
+
+    int fenPosition = 0;
+    int currentSquare = 56;
+
+    for(int countSlash = 0; countSlash <= 7; countSlash++) {
+
+        while(fen.at(fenPosition) != '/' && fen.at(fenPosition) != ' ') {
+
+            if(isdigit(fen.at(fenPosition))) {
+                int number = fen.at(fenPosition) - 48;
+                currentSquare += number;
+            } else {
+                int team = BLACK; // black piece
+                if(isupper(fen.at(fenPosition))) {
+                    // White piece
+                    team = WHITE;
+                }
+
+                char piece = tolower(fen.at(fenPosition));
+                U64* targetPieces;
+
+                switch(piece) {
+                    case 'p':
+                        // pawn
+                        targetPieces = pawns;
+                        break;
+                    case 'r':
+                        // rook
+                        targetPieces = rooks;
+                        break;
+                    case 'n':
+                        // knight
+                        targetPieces = knights;
+                        break;
+                    case 'b':
+                        // bishop
+                        targetPieces = bishops;
+                        break;
+                    case 'q':
+                        // queen
+                        targetPieces = queens;
+                        break;
+                    case 'k':
+                        // king
+                        targetPieces = kings;
+                        break;
+                }
+
+                targetPieces[team] |= (1UL << currentSquare);
+                occupied |= (1UL << currentSquare);
+                pieces[team] |= (1UL << currentSquare);
+                currentSquare++;
+            }
+
+            fenPosition++;
+        }
+        fenPosition++;
+
+        currentSquare = (((currentSquare - 1) / 8) - 1) * 8; // Set Square to next row start
+    }
+
+    if(fen.at(fenPosition) == 'w') {
+        actingTeam = WHITE;
+    } else if(fen.at(fenPosition) == 'b') {
+        actingTeam = BLACK;
+    } else {
+        std::cerr << "Error" << std::endl;
+    }
+
+    fenPosition += 2;
+
+    while(fen.at(fenPosition) != '-' && fen.at(fenPosition) != ' ') {
+        int team = BLACK;
+        if(isupper(fen.at(fenPosition))) {
+            team = WHITE;
+        }
+        kingMoved[team] = false;
+
+        if(tolower(fen.at(fenPosition)) == 'k') {
+            rookMoved[team][1] = false;
+        } else if(tolower(fen.at(fenPosition)) == 'q') {
+            rookMoved[team][0] = false;
+        }
+
+        fenPosition++;
+    }
+
+    fenPosition++;
+
+    //TODO: enPassant targets
 }
 
 void Board::initializePieces() {
@@ -228,6 +333,8 @@ void Board::executeMove(Move move) {
             } else if(team == BLACK) {
                 targetSquare = 1UL << 59;
             }
+        } else {
+            std::cout << "error execute" << std::endl;
         }
 
         rooks[team] &= originSquare;
@@ -326,6 +433,8 @@ void Board::undoLastMove() {
             } else if(team == BLACK) {
                 targetSquare = 1UL << 56;
             }
+        } else {
+            std::cout << "Error undo" << std::endl;
         }
 
         rooks[team] &= originSquare;
