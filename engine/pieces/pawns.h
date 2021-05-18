@@ -1,9 +1,11 @@
 #pragma once
 
 #include <vector>
+#include <array>
 
 #include "Move.h"
 #include "utils.h"
+
 
 namespace Pawn {
     typedef unsigned long U64;
@@ -11,6 +13,9 @@ namespace Pawn {
     const int WHITE = 0;
     const U64 notAFile = 0xfefefefefefefefe; // ~0x0101010101010101
     const U64 notHFile = 0x7f7f7f7f7f7f7f7f; // ~0x8080808080808080
+
+
+    std::array<int, 64> pieceSquareTable();
 
     U64 noEaOne(U64 b);
 

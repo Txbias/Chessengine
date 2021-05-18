@@ -626,32 +626,56 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
     return alpha;
 }
 
+#define pieceSquareIndex(team, square) ((team) == BLACK ? (square) : 63 - (square))
+
 int Board::valuePosition(int team) {
     int value = 0;
+    int enemy = ENEMY(team);
 
-    int valuePawnsWhite = getCardinality(pawns[WHITE]) * VALUE_PAWN;
-    int valuePawnsBlack = getCardinality(pawns[BLACK]) * VALUE_PAWN;
-    value += team == WHITE ? (valuePawnsWhite - valuePawnsBlack) : (valuePawnsBlack - valuePawnsWhite);
+    for(int i = 0; i < 64; i++) {
+        U64 existsPawn = (1UL << i) & pawns[team];
+        if (existsPawn) value += VALUE_PAWN + (Pawn::pieceSquareTable()[pieceSquareIndex(team, i)]);
 
-    int valueKnightsWhite = getCardinality(knights[WHITE]) * VALUE_KNIGHT;
-    int valueKnightsBlack = getCardinality(knights[BLACK]) * VALUE_KNIGHT;
-    value += team == WHITE ? (valueKnightsWhite - valueKnightsBlack) : (valueKnightsBlack - valueKnightsWhite);
+        U64 existsPawnEnemy = (1UL << i) & pawns[enemy];
+        if (existsPawnEnemy) value -= VALUE_PAWN + (Pawn::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
 
-    int valueRooksWhite = getCardinality(rooks[WHITE]) * VALUE_ROOK;
-    int valueRooksBlack = getCardinality(rooks[BLACK]) * VALUE_ROOK;
-    value += team == WHITE ? (valueRooksWhite - valueRooksBlack) : (valueRooksBlack - valueRooksWhite);
+        U64 existsKnight = (1UL << i) & knights[team];
+        if (existsKnight) value += VALUE_KNIGHT + (Knight::pieceSquareTable()[pieceSquareIndex(team, i)]);
 
-    int valueBishopsWhite = getCardinality(bishops[WHITE]) * VALUE_BISHOP;
-    int valueBishopsBlack = getCardinality(bishops[BLACK]) * VALUE_BISHOP;
-    value += team == WHITE ? (valueBishopsWhite - valueBishopsBlack) : (valueBishopsBlack - valueBishopsWhite);
+        U64 existsKnightEnemy = (1UL << i) & knights[enemy];
+        if (existsKnightEnemy) value -= VALUE_KNIGHT + (Knight::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
 
-    int valueQueensWhite = getCardinality(queens[WHITE]) * VALUE_QUEEN;
-    int valueQueensBlack = getCardinality(queens[BLACK]) * VALUE_QUEEN;
-    value += team == WHITE ? (valueQueensWhite - valueQueensBlack) : (valueQueensBlack - valueQueensWhite);
+        U64 existsBishop = (1UL << i) & bishops[team];
+        if (existsBishop) value += VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(team, i)]);
 
-    int whiteKing = getCardinality(kings[WHITE]) * VALUE_KING;
-    int blackKing = getCardinality(kings[BLACK]) * VALUE_KING;
-    value += team == WHITE ? (whiteKing - blackKing) : (blackKing - whiteKing);
+        U64 existsBishopEnemy = (1UL << i) & bishops[enemy];
+        if (existsBishopEnemy) value -= VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+
+        U64 existsRook = (1UL << i) & rooks[team];
+        if (existsRook) value += VALUE_ROOK + (Rook::pieceSquareTable()[pieceSquareIndex(team, i)]);
+
+        U64 existsRookEnemy = (1UL << i) & rooks[enemy];
+        if (existsRookEnemy) value -= VALUE_ROOK + (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+
+        U64 existsQueen = (1UL << i) & queens[team];
+        if (existsQueen) value += VALUE_QUEEN + (Queen::pieceSquareTable()[pieceSquareIndex(team, i)]);
+
+        U64 existsQueenEnemy = (1UL << i) & queens[enemy];
+        if (existsQueenEnemy) value -= VALUE_QUEEN + (Queen::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+
+        U64 existsKing = (1UL << i) & kings[team];
+        if (existsKing) value += VALUE_KING + (King::pieceSquareTableMiddleGame()[pieceSquareIndex(team, i)]);
+
+        U64 existsKingEnemy = (1UL << i) & kings[enemy];
+        if (existsKingEnemy) value -= VALUE_KING + (King::pieceSquareTableMiddleGame()[pieceSquareIndex(enemy, i)]);
+    }
+
+    if(inCheck(team)) {
+        value -= 1000;
+    }
+    if(inCheck(ENEMY(team))) {
+        value += 1000;
+    }
 
     return value;
 }

@@ -25,18 +25,18 @@ private:
 
     int actingTeam = -1;
 
-    std::stack<Move> moves;
-
     void initializePieces();
+
     unsigned int getPieceType(unsigned int targetSquare, int team);
     unsigned long* getTargetPieces(unsigned int targetSquare, int team);
     int getTeam(unsigned int square);
     U64 getTargetMap(int team);
     int alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove);
-
 public:
 
     Board();
+
+    std::stack<Move> moves;
 
     unsigned long pieces[2];
     unsigned long pawns[2];
@@ -50,11 +50,11 @@ public:
     bool rookMoved[2][2];
 
     const int VALUE_PAWN = 100;
-    const int VALUE_KNIGHT = 350;
-    const int VALUE_BISHOP = 350;
-    const int VALUE_ROOK = 525;
-    const int VALUE_QUEEN = 1000;
-    const int VALUE_KING = 10000;
+    const int VALUE_KNIGHT = 320;
+    const int VALUE_BISHOP = 330;
+    const int VALUE_ROOK = 500;
+    const int VALUE_QUEEN = 900;
+    const int VALUE_KING = 20000;
 
     std::vector<Move> getAllMoves(int team);
     Move getBestMove(int team);

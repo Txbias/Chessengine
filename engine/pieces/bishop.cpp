@@ -1,5 +1,21 @@
 #include "bishop.h"
 
+std::array<int, 64> Bishop::pieceSquareTable() {
+
+    constexpr const std::array<int, 64> table {
+            -20,-10,-10,-10,-10,-10,-10,-20,
+            -10,  0,  0,  0,  0,  0,  0,-10,
+            -10,  0,  5, 10, 10,  5,  0,-10,
+            -10,  5,  5, 10, 10,  5,  5,-10,
+            -10,  0, 10, 10, 10, 10,  0,-10,
+            -10, 10, 10, 10, 10, 10, 10,-10,
+            -10,  5,  0,  0,  0,  0,  5,-10,
+            -20,-10,-10,-10,-10,-10,-10,-20,
+    };
+
+    return table;
+}
+
 
 std::vector<Move> Bishop::getMoves(U64 bishops, U64 ownPieces, U64 enemyPieces) {
     std::vector<Move> moves;

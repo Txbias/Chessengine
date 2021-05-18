@@ -1,12 +1,16 @@
 #pragma once
 
 #include <vector>
+#include <array>
 
 #include "Move.h"
 #include "utils.h"
 
+
 namespace Knight {
     typedef unsigned long U64;
+
+    std::array<int, 64> pieceSquareTable();
 
     const U64 notAFile = ~setFile(0UL, 0);
     const U64 notABFile = ~setFile(~notAFile, 1);
@@ -27,5 +31,4 @@ namespace Knight {
     U64 getOriginKnights(U64 knights, U64 target, U64 ownPieces);
 
     std::vector<Move> getMoves(U64 knights, U64 enemyPieces, U64 ownPieces);
-
 }

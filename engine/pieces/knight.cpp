@@ -2,6 +2,21 @@
 
 typedef unsigned long U64;
 
+std::array<int, 64> Knight::pieceSquareTable() {
+    constexpr const std::array<int, 64> table = {
+            -50,-40,-30,-30,-30,-30,-40,-50,
+            -40,-20,  0,  0,  0,  0,-20,-40,
+            -30,  0, 10, 15, 15, 10,  0,-30,
+            -30,  5, 15, 20, 20, 15,  5,-30,
+            -30,  0, 15, 20, 20, 15,  0,-30,
+            -30,  5, 10, 15, 15, 10,  5,-30,
+            -40,-20,  0,  5,  5,  0,-20,-40,
+            -50,-40,-30,-30,-30,-30,-40,-50,
+    };
+
+    return table;
+}
+
 U64 Knight::noNoEa(U64 b) {return (b << 17) & notAFile ;}
 U64 Knight::noEaEa(U64 b) {return (b << 10) & notABFile;}
 U64 Knight::soEaEa(U64 b) {return (b >>  6) & notABFile;}
