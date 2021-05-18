@@ -130,6 +130,38 @@ TEST(KingTest, castlingMoveExecution) {
     board.executeMove(move8);
     ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
 
+    ASSERT_TRUE(board.kings[0] & (1UL << 6));
+    ASSERT_TRUE(board.kings[1] & (1UL << 62));
+
+    ASSERT_TRUE(board.rooks[0] & (1UL << 5));
+    ASSERT_TRUE(board.kings[1] & (1UL << 62));
+
+    ASSERT_EQ(getCardinality(board.kings[0]), 1);
+    ASSERT_EQ(getCardinality(board.kings[1]), 1);
+
+
+    Move move9(8, 16, FLAG_QUIET);
+    board.executeMove(move9);
+
+    Move move10(48, 48-16, FLAG_PAWN_DBL_PUSH);
+    board.executeMove(move10);
+
+    Move move11(5, 4, FLAG_QUIET);
+    board.executeMove(move11);
+
+    Move move12(61, 60, FLAG_QUIET);
+    board.executeMove(move12);
+
+    for(int i = 0; i < 4; i++) {
+        board.undoLastMove();
+    }
+
+    ASSERT_TRUE(board.kings[0] & (1UL << 6));
+    ASSERT_TRUE(board.kings[1] & (1UL << 62));
+
+    ASSERT_TRUE(board.rooks[0] & (1UL << 5));
+    ASSERT_TRUE(board.kings[1] & (1UL << 62));
+
     ASSERT_EQ(getCardinality(board.kings[0]), 1);
     ASSERT_EQ(getCardinality(board.kings[1]), 1);
 
