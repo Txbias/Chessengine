@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 #include "pieces/king.h"
+#include "board.h"
+#include "utils.h"
 
 TEST(KingTest, castlingWhite) {
 
@@ -88,4 +90,53 @@ TEST(KingTest, castlingBlackKingMoved) {
                                                      rookMoved);
 
     ASSERT_EQ(moves.size(), 0);
+}
+
+TEST(KingTest, castlingMoveExecution) {
+    Board board;
+
+    int cardinality = getCardinality(board.getOccupied());
+
+    Move move(6, 21, FLAG_QUIET);
+    board.executeMove(move);
+    ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+
+    Move move2(62, 44, FLAG_QUIET);
+    board.executeMove(move2);
+    ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+
+    Move move3(14, 14+8, FLAG_QUIET);
+    board.executeMove(move3);
+    ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+
+
+    Move move4(54, 54-8, FLAG_QUIET);
+    board.executeMove(move4);
+    ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+
+    Move move5(5, 14, FLAG_QUIET);
+    board.executeMove(move5);
+    ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+
+    Move move6(61, 54, FLAG_QUIET);
+    board.executeMove(move6);
+    ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+
+    Move move7(4, 6, FLAG_KING_CASTLE);
+    board.executeMove(move7);
+    ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+
+    Move move8(60, 62, FLAG_KING_CASTLE);
+    board.executeMove(move8);
+    ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+
+    ASSERT_EQ(getCardinality(board.kings[0]), 1);
+    ASSERT_EQ(getCardinality(board.kings[1]), 1);
+
+    while(!board.moves.empty()) {
+        board.undoLastMove();
+        ASSERT_EQ(cardinality, getCardinality(board.getOccupied()));
+        ASSERT_EQ(getCardinality(board.kings[0]), 1);
+        ASSERT_EQ(getCardinality(board.kings[1]), 1);
+    }
 }
