@@ -100,3 +100,28 @@ TEST(BoardTest, EvaluationTest) {
     ASSERT_EQ(board.valuePosition(1), 0);
 
 }
+
+TEST(FenTest, StartingPosition) {
+    Board fenBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    Board board;
+
+    ASSERT_EQ(fenBoard.getBoardPrintable(), board.getBoardPrintable());
+}
+
+TEST(FenTest, AfterFewMoves) {
+    Board board;
+
+    Move move1(12, 12+16, FLAG_PAWN_DBL_PUSH);
+    board.executeMove(move1);
+
+    Move move2(50, 50-16, FLAG_PAWN_DBL_PUSH);
+    board.executeMove(move2);
+
+    Move move3(6, 21, FLAG_QUIET);
+    board.executeMove(move3);
+
+    Board fenBoard("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+
+    ASSERT_EQ(board.getBoardPrintable(), fenBoard.getBoardPrintable());
+}
