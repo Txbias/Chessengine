@@ -19,10 +19,14 @@ int main() {
 
     Board board;
 
+    bool hasMoved = false;
+    int team = 0;
+
     while(true) {
         std::string line;
         std::getline(std::cin, line);
 
+        Logger::debug(line);
         std::vector<std::string> commands;
         split(line, ' ', std::back_inserter(commands));
 
@@ -33,12 +37,15 @@ int main() {
         } else if(commands[0] == "usermove") {
             std::string move = commands[1];
 
+            if(!hasMoved) {
+                team = 1;
+            }
 
             board.executeMove(Move::fromNotation(move));
 
             Logger::debug(board.getBoardPrintable());
 
-            Move bestMove = board.getBestMove(1);
+            Move bestMove = board.getBestMove(team);
             std::cout << "move " << Move::toNotation(bestMove) << std::endl;
 
             board.executeMove(bestMove);
@@ -47,9 +54,24 @@ int main() {
             board.printBoard();
 
             Logger::debug(board.getBoardPrintable());
-
+            hasMoved = true;
         } else if(commands[0] == "quit") {
             break;
+        } else if(commands[0] == "go") {
+            if(hasMoved) {
+                continue;
+            }
+
+            Move bestMove = board.getBestMove(0);
+            std::cout << "move " << Move::toNotation(bestMove) << std::endl;
+            board.executeMove(bestMove);
+
+            std::cout << "Value white: " << board.valuePosition(0) << std::endl;
+            std::cout << "Value black: " << board.valuePosition(1) << std::endl;
+            board.printBoard();
+
+            Logger::debug(board.getBoardPrintable());
+            hasMoved = true;
         }
     }
 
