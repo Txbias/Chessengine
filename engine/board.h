@@ -20,6 +20,8 @@ class Board {
 
 private:
     unsigned long occupied = 0;
+    U64 enPassantTarget = 0UL;
+    unsigned int enPassantSquare = 0;
 
     const int WHITE = 0;
     const int BLACK = 1;

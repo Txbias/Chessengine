@@ -209,6 +209,19 @@ void Board::executeMove(Move move) {
 
     int team = getTeam(move.getFrom());
     actingTeam = ENEMY(team);
+
+    if(move.getTo() == enPassantSquare && getPieceType(move.getFrom(), team) == PAWN) {
+        move.setFlags(FLAG_EP_CAPTURE);
+    }
+
+    U64 currentEPTarget = enPassantTarget;
+    unsigned int currentEPSquare = enPassantSquare;
+
+    move.setEPSquareBefore(enPassantSquare);
+
+    enPassantTarget = 0UL;
+    enPassantSquare = 0;
+
     unsigned long *targetPieceEnemy = getTargetPieces(move.getTo(), ENEMY(team));
 
     if(targetPieceEnemy != nullptr) {
@@ -220,8 +233,23 @@ void Board::executeMove(Move move) {
         }
     }
 
+    if(move.getFlags() == FLAG_PAWN_DBL_PUSH) {
+        if(team == WHITE) {
+            enPassantTarget = southOne(1UL << move.getTo());
+            enPassantSquare = move.getTo() - 8;
+        } else {
+            enPassantTarget = northOne(1UL << move.getTo());
+            enPassantSquare = move.getTo() + 8;
+        }
+    }
+
     if(move.isCapture()) {
-        unsigned int pieceType = getPieceType(move.getTo(), ENEMY(team));
+        unsigned int pieceType;
+        if(move.getFlags() == FLAG_EP_CAPTURE) {
+            pieceType = PAWN;
+        } else {
+            pieceType = getPieceType(move.getTo(), ENEMY(team));
+        }
         if(pieceType == -1) {
             std::cerr << "Des ist net gut" << std::endl;
         }
@@ -347,8 +375,19 @@ void Board::executeMove(Move move) {
     }
 
     if(move.isCapture()) {
-        unsigned long* targetPieces = getTargetPieces(move.getTo(), ENEMY(team));
-        U64 targetSquare = ~(1UL << move.getTo());
+        U64 targetSquare;
+        if(move.getFlags() == FLAG_EP_CAPTURE) {
+            targetPieces = pawns;
+            if(team == WHITE) {
+                targetSquare = ~(1UL << (currentEPSquare - 8));
+            } else {
+                targetSquare = ~(1UL << (currentEPSquare + 8));
+            }
+            occupied &= targetSquare;
+        } else {
+            targetPieces = getTargetPieces(move.getTo(), ENEMY(team));
+            targetSquare = ~(1UL << move.getTo());
+        }
         targetPieces[ENEMY(team)] &= targetSquare;
         pieces[ENEMY(team)] &= targetSquare;
     }
@@ -447,6 +486,7 @@ void Board::undoLastMove() {
     }
 
     if(move.isCapture()) {
+        //TODO: just save the pointer to the captured pieces bitboard
         unsigned int capturedPiece = move.getCapturedPiece();
         unsigned long* capturedPieces;
 
@@ -471,10 +511,26 @@ void Board::undoLastMove() {
                 break;
         }
 
-        capturedPieces[enemyTeam] |= ~currentPos;
-        pieces[enemyTeam] |= ~currentPos;
-        occupied |= ~currentPos;
+        currentPos = ~currentPos;
+        if(move.getFlags() == FLAG_EP_CAPTURE) {
+            if(team == WHITE) {
+                currentPos = southOne(currentPos);
+            } else {
+                currentPos = northOne(currentPos);
+            }
+        }
+
+        if(move.getFlags() == FLAG_EP_CAPTURE) {
+            capturedPieces = pawns;
+        }
+
+        capturedPieces[enemyTeam] |= currentPos;
+        pieces[enemyTeam] |= currentPos;
+        occupied |= currentPos;
     }
+
+    enPassantSquare = move.getEPSquareBefore();
+    enPassantTarget = 1UL << move.getEPSquareBefore();
 }
 
 void Board::printBoard() {
@@ -666,7 +722,8 @@ std::vector<Move> Board::getAllMoves(int team) {
     U64 enemyPieces = pieces[enemyTeam];
     U64 ownPieces = pieces[team];
 
-    std::vector<Move> pawnMoves = Pawn::getMoves(pawns[team], empty, enemyPieces, team);
+    std::vector<Move> pawnMoves = Pawn::getMoves(pawns[team], empty, enemyPieces,
+                                                 enPassantTarget, team);
     moves.insert(moves.end(), std::begin(pawnMoves), std::end(pawnMoves));
 
     std::vector<Move> knightMoves = Knight::getMoves(knights[team], enemyPieces, ownPieces);

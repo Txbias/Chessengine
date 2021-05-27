@@ -70,6 +70,10 @@ public:
         return initialMoveRook;
     }
 
+    unsigned int getEPSquareBefore() {
+        return epSquareBefore;
+    }
+
     void setFlags(unsigned int flags) {
         m_move = ((flags & 0xf) << 12) | ((getFrom() & 0x3f) << 6) | (getTo() & 0x3f);
     }
@@ -84,6 +88,10 @@ public:
 
     void setInitialMoveRook() {
         initialMoveRook = true;
+    }
+
+    void setEPSquareBefore(unsigned int square) {
+        epSquareBefore = square;
     }
 
     static std::string toNotation(unsigned int position) {
@@ -137,6 +145,7 @@ public:
 private:
     unsigned int m_move;
     unsigned int captured;
+    unsigned int epSquareBefore;
     bool initialMoveKing = false;
     bool initialMoveRook = false;
 

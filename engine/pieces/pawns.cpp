@@ -117,7 +117,7 @@ U64 Pawn::blackPawnsAble2CaptureAny(U64 blackPawns, U64 whitePieces) {
     return blackPawns & whitePawnAnyAttack(whitePieces);
 }
 
-std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces) {
+std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget) {
     std::vector<Move> moves;
 
     U64 able2DblPush = whitePawnsAble2DblPush(pawns, empty);
@@ -179,10 +179,32 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces) {
         }
     }
 
+    U64 enPassant = whitePawnAnyAttack(pawns) & enPassantTarget;
+    if(enPassant) {
+        unsigned int to;
+        for(int i = 0; i < 64; i++) {
+            if(enPassantTarget & (1UL << i)) {
+                to = i;
+                break;
+            }
+        }
+        unsigned int from;
+        U64 fromBitboard = pawns & blackPawnsAnyAttack(enPassantTarget);
+        for(int i = 0; i < 64; i++) {
+            if(fromBitboard & (1UL << i)) {
+                from = i;
+                Move move(from, to, FLAG_EP_CAPTURE);
+                moves.emplace_back(move);
+            }
+        }
+
+    }
+
+
     return moves;
 }
 
-std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces) {
+std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget) {
     std::vector<Move> moves;
 
     U64 able2DblPush = blackPawnsAble2DblPush(pawns, empty);
@@ -243,13 +265,35 @@ std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces) {
        }
     }
 
+    U64 enPassant = blackPawnsAnyAttack(pawns) & enPassantTarget;
+    if(enPassant) {
+        unsigned int to;
+        for(int i = 0; i < 64; i++) {
+            if(enPassantTarget & (1UL << i)) {
+                to = i;
+                break;
+            }
+        }
+        unsigned int from;
+        U64 fromBitboard = pawns & whitePawnAnyAttack(enPassantTarget);
+        for(int i = 0; i < 64; i++) {
+            if(fromBitboard & (1UL << i)) {
+                from = i;
+                Move move(from, to, FLAG_EP_CAPTURE);
+                moves.emplace_back(move);
+            }
+        }
+
+    }
+
     return moves;
 }
 
-std::vector<Move> Pawn::getMoves(U64 pawns, U64 empty, U64 enemyPieces, int team) {
+std::vector<Move> Pawn::getMoves(U64 pawns, U64 empty, U64 enemyPieces,
+                                 U64 enPassantTarget, int team) {
     if(team == WHITE) {
-        return getMovesWhite(pawns, empty, enemyPieces);
+        return getMovesWhite(pawns, empty, enemyPieces, enPassantTarget);
     } else {
-        return getMovesBlack(pawns, empty, enemyPieces);
+        return getMovesBlack(pawns, empty, enemyPieces, enPassantTarget);
     }
 }
