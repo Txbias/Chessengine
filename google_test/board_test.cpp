@@ -125,3 +125,10 @@ TEST(FenTest, AfterFewMoves) {
 
     ASSERT_EQ(board.getBoardPrintable(), fenBoard.getBoardPrintable());
 }
+
+TEST(FenTest, EnPassant) {
+    Board board("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+
+    ASSERT_EQ(board.enPassantSquare, 20);
+    ASSERT_EQ(board.enPassantTarget, 1UL << 20);
+}
