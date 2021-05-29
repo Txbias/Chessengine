@@ -20,8 +20,6 @@ class Board {
 
 private:
     unsigned long occupied = 0;
-    U64 enPassantTarget = 0UL;
-    unsigned int enPassantSquare = 0;
 
     const int WHITE = 0;
     const int BLACK = 1;
@@ -59,6 +57,9 @@ public:
     const int VALUE_ROOK = 500;
     const int VALUE_QUEEN = 900;
     const int VALUE_KING = 20000;
+
+    U64 enPassantTarget = 0UL;
+    unsigned int enPassantSquare = 0;
 
     std::vector<Move> getAllMoves(int team);
     Move getBestMove(int team);

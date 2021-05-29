@@ -109,7 +109,12 @@ Board::Board(const std::string& fen) {
 
     fenPosition++;
 
-    //TODO: enPassant targets
+    int file = fen.at(fenPosition) - 97;
+    int row = (fen.at(fenPosition + 1) - 48) - 1;
+
+    enPassantSquare =  row * 8 + file;
+    enPassantTarget = 1UL << enPassantSquare;
+
 }
 
 void Board::initializePieces() {
