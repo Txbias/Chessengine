@@ -1,6 +1,6 @@
 #include "board.h"
 
-#define SEARCH_DEPTH 1
+#define SEARCH_DEPTH 4
 
 Board::Board() {
     initializePieces();
@@ -709,8 +709,6 @@ bool Board::checkMate(int team) {
         return false;
     }
 
-    // TODO: finish
-
     return true;
 }
 
@@ -765,6 +763,14 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
     }
 
     std::vector<Move> allMoves = getAllMoves(actingTeam);
+
+    if(allMoves.empty() && inCheck(actingTeam)) {
+        return INT16_MAX / 2;
+    }
+
+    if(allMoves.empty() && !inCheck(actingTeam)) {
+        return INT16_MIN / 2;
+    }
 
     for(int i = 0; i < allMoves.size(); i++) {
         executeMove(allMoves[i]);
@@ -841,6 +847,13 @@ int Board::valuePosition(int team) {
     }
     if(inCheck(ENEMY(team))) {
         value += 1000;
+    }
+
+    if(checkMate(team)) {
+        value -= 100000;
+    }
+    if(checkMate(ENEMY(team))) {
+        value += 100000;
     }
 
     return value;
