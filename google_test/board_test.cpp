@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "board.h"
 
+#include <chrono>
+
 TEST(BoardTest, MoveExecution) {
     Board board;
 
@@ -131,4 +133,31 @@ TEST(FenTest, EnPassant) {
 
     ASSERT_EQ(board.enPassantSquare, 20);
     ASSERT_EQ(board.enPassantTarget, 1UL << 20);
+}
+
+TEST(FenTest, CastlingRights) {
+    Board board("rnbk2nr/pp1p1ppp/1p1bp3/8/8/B7/P1PPPPPP/q2QKBNR b K - 1 7");
+
+    ASSERT_FALSE(board.kingMoved[0]);
+    ASSERT_TRUE(board.kingMoved[1]);
+
+    ASSERT_FALSE(board.rookMoved[0][0]);
+    ASSERT_TRUE(board.rookMoved[0][1]);
+    ASSERT_TRUE(board.rookMoved[1][0]);
+    ASSERT_TRUE(board.rookMoved[1][1]);
+}
+
+TEST(FenTest, infiniteLoop) {
+    Board board("rnbk2nr/pp1p1ppp/1p1bp3/8/8/B7/P1PPPPPP/q2QKBNR b K - 1 7");
+
+    ASSERT_TRUE(board.queens[0] & (1UL << 3));
+    ASSERT_FALSE(board.rooks[0] & (1UL << 3));
+
+    auto begin = std::chrono::high_resolution_clock::now();
+    board.getBestMove(1);
+    auto end = std::chrono::high_resolution_clock::now();
+
+    long durationInSeconds = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+
+    ASSERT_TRUE(durationInSeconds <= 5);
 }

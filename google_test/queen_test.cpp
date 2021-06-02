@@ -92,3 +92,10 @@ TEST(QueenTest, targetMapMultipleQueens) {
     }
 }
 
+TEST(QueenTest, queenInCorner) {
+    U64 queens = 1UL << 0;
+    U64 enemyPieces = 1UL << 8 | 1UL << 3;
+    std::vector<Move> moves = Queen::getMoves(queens, queens, enemyPieces);
+
+    ASSERT_EQ(moves.size(), 11);
+}
