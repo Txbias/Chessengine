@@ -75,7 +75,7 @@ bool King::canCastleKingSide(U64 occupied, U64 enemyAttackMap, int team,
                              const bool kingMoved[2], bool rookMoved[2][2]) {
 
     if(kingMoved[team]) return false;
-    if(rookMoved[team][1]) return false;
+    if(rookMoved[team][0]) return false;
 
     U64 castlingSquares;
     U64 targetSquares;

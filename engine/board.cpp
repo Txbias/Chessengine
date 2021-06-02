@@ -10,6 +10,15 @@ Board::Board() {
 Board::Board(const std::string& fen) {
 
     occupied = 0UL;
+    kingMoved[0] = true;
+    kingMoved[1] = true;
+
+    for(int i = 0; i < 2; i++) {
+        for(int k = 0; k < 2; k++) {
+            rookMoved[i][k] = true;
+        }
+    }
+
 
     for(int i = 0; i <= 1; i++) {
         pieces[i] = 0UL;
@@ -99,9 +108,9 @@ Board::Board(const std::string& fen) {
         kingMoved[team] = false;
 
         if(tolower(fen.at(fenPosition)) == 'k') {
-            rookMoved[team][1] = false;
-        } else if(tolower(fen.at(fenPosition)) == 'q') {
             rookMoved[team][0] = false;
+        } else if(tolower(fen.at(fenPosition)) == 'q') {
+            rookMoved[team][1] = false;
         }
 
         fenPosition++;
@@ -307,14 +316,14 @@ void Board::executeMove(Move move) {
                 rookMoved[WHITE][1] = true;
             }
         } else if(move.getFrom() == 56 && team == BLACK) {
-            if(!rookMoved[BLACK][0]) {
-                move.setInitialMoveRook();
-                rookMoved[BLACK][0] = true;
-            }
-        } else if(move.getFrom() == 63 && team == BLACK) {
             if(!rookMoved[BLACK][1]) {
                 move.setInitialMoveRook();
                 rookMoved[BLACK][1] = true;
+            }
+        } else if(move.getFrom() == 63 && team == BLACK) {
+            if(!rookMoved[BLACK][0]) {
+                move.setInitialMoveRook();
+                rookMoved[BLACK][0] = true;
             }
         }
     }
@@ -436,13 +445,13 @@ void Board::undoLastMove() {
         kingMoved[team] = false;
     } else if(move.isInitialMoveRook()) {
         if(move.getFrom() == 0 && team == WHITE) {
-            rookMoved[WHITE][0] = false;
-        } else if(move.getFrom() == 7 && team == WHITE) {
             rookMoved[WHITE][1] = false;
+        } else if(move.getFrom() == 7 && team == WHITE) {
+            rookMoved[WHITE][0] = false;
         } else if(move.getFrom() == 56 && team == BLACK) {
-            rookMoved[BLACK][0] = false;
-        } else if(move.getFrom() == 63 && team == BLACK) {
             rookMoved[BLACK][1] = false;
+        } else if(move.getFrom() == 63 && team == BLACK) {
+            rookMoved[BLACK][0] = false;
         } else {
             std::cerr << "Move is supposed to be initial Move for king or rook but it isn't" << std::endl;
         }
@@ -769,6 +778,8 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
     std::vector<Move> allMoves = getAllMoves(actingTeam);
 
+
+
     if(allMoves.empty() && inCheck(actingTeam)) {
         return INT16_MAX / 2;
     }
@@ -778,7 +789,19 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
     }
 
     for(int i = 0; i < allMoves.size(); i++) {
+        /*if(rooks[0] & (1UL << 3)) {
+            std::cout << "Error 1" << std::endl;
+        }*/
+
+        /*if(i == 29 && allMoves[i].getFrom() == 4 && allMoves[i].getTo() == 2 && depthLeft == 1) {
+            std::cout << "ddaw" << std::endl;
+        }*/
+
         executeMove(allMoves[i]);
+
+        /*if(rooks[0] & (1UL << 3)) {
+            std::cout << "Error 2" << std::endl;
+        }*/
 
         if(depthLeft == SEARCH_DEPTH) {
             if(inCheck(ENEMY(actingTeam))) {
@@ -786,6 +809,10 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
                 continue;
             }
         }
+
+        /*if(depthLeft == 4 && beta == 16383 && allMoves[i].getFrom() == 53 && allMoves[i].getTo() == 37) {
+            std::cout << "dawd" << std::endl;
+        }*/
 
         int score = -alphaBeta(-beta, -alpha, depthLeft - 1, team, bestMove);
         undoLastMove();
