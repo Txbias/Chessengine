@@ -43,12 +43,12 @@ std::vector<Move> King::getMoves(U64 king, U64 ownPieces, U64 enemyPieces) {
     return moves;
 }
 
-std::vector<Move> King::getCastlingMoves(U64 occupied, U64 enemyAttackMap, int team,
-                                         bool kingMoved[2], bool rookMoved[2][2]) {
+std::vector<Move> King::getCastlingMoves(U64 king, U64 rooks, U64 occupied, U64 enemyAttackMap,
+                                         int team, const bool kingMoved[2], bool rookMoved[2][2]) {
 
     std::vector<Move> moves;
 
-    if(canCastleKingSide(occupied, enemyAttackMap, team, kingMoved, rookMoved)) {
+    if(canCastleKingSide(king, rooks, occupied, enemyAttackMap, team, kingMoved, rookMoved)) {
         if(team == 0) {
             Move move(4, 6, FLAG_KING_CASTLE);
             moves.emplace_back(move);
@@ -58,7 +58,7 @@ std::vector<Move> King::getCastlingMoves(U64 occupied, U64 enemyAttackMap, int t
         }
     }
 
-    if(canCastleQueenSide(occupied, enemyAttackMap, team, kingMoved, rookMoved)) {
+    if(canCastleQueenSide(king, rooks, occupied, enemyAttackMap, team, kingMoved, rookMoved)) {
         if(team == 0) {
             Move move(4, 2, FLAG_QUEEN_CASTLE);
             moves.emplace_back(move);
@@ -71,11 +71,25 @@ std::vector<Move> King::getCastlingMoves(U64 occupied, U64 enemyAttackMap, int t
     return moves;
 }
 
-bool King::canCastleKingSide(U64 occupied, U64 enemyAttackMap, int team,
-                             const bool kingMoved[2], bool rookMoved[2][2]) {
+bool King::canCastleKingSide(U64 king, U64 rooks, U64 occupied, U64 enemyAttackMap,
+                             int team, const bool kingMoved[2], bool rookMoved[2][2]) {
 
     if(kingMoved[team]) return false;
     if(rookMoved[team][0]) return false;
+
+    if(team == 0) {
+        if(!(king & (1UL << 4))) {
+            return false;
+        } else if(!(rooks & (1UL << 7))) {
+            return false;
+        }
+    } else {
+        if(!(king & (1UL << 60))) {
+            return false;
+        }else if(!(rooks & (1UL << 63))) {
+            return false;
+        }
+    }
 
     U64 castlingSquares;
     U64 targetSquares;
@@ -101,11 +115,26 @@ bool King::canCastleKingSide(U64 occupied, U64 enemyAttackMap, int team,
     return true;
 }
 
-bool King::canCastleQueenSide(U64 occupied, U64 enemyAttackMap, int team,
-                              const bool kingMoved[2], bool rookMoved[2][2]) {
+bool King::canCastleQueenSide(U64 king, U64 rooks, U64 occupied, U64 enemyAttackMap,
+                              int team, const bool kingMoved[2], bool rookMoved[2][2]) {
 
     if(kingMoved[team]) return false;
     if(rookMoved[team][1]) return false;
+
+    if(team == 0) {
+        if(!(king & (1UL << 4))) {
+            return false;
+        } else if(!(rooks & (1UL << 0))) {
+            return false;
+        }
+
+    } else {
+        if(!(king & (1UL << 60))) {
+            return false;
+        } else if(!(rooks & (1UL << 56))) {
+            return false;
+        }
+    }
 
     U64 castlingSquares;
     U64 targetSquares;

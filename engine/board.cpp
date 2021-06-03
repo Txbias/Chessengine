@@ -753,7 +753,8 @@ std::vector<Move> Board::getAllMoves(int team) {
     std::vector<Move> kingMoves = King::getMoves(kings[team], ownPieces, enemyPieces);
     moves.insert(moves.end(), std::begin(kingMoves), std::end(kingMoves));
 
-    std::vector<Move> castleMoves = King::getCastlingMoves(occupied, getTargetMap(enemyTeam),
+    std::vector<Move> castleMoves = King::getCastlingMoves(kings[team], rooks[team], occupied,
+                                                           getTargetMap(enemyTeam),
                                                            team, kingMoved, rookMoved);
     moves.insert(moves.end(), std::begin(castleMoves), std::end(castleMoves));
 
@@ -778,8 +779,6 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
     std::vector<Move> allMoves = getAllMoves(actingTeam);
 
-
-
     if(allMoves.empty() && inCheck(actingTeam)) {
         return INT16_MAX / 2;
     }
@@ -789,19 +788,8 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
     }
 
     for(int i = 0; i < allMoves.size(); i++) {
-        /*if(rooks[0] & (1UL << 3)) {
-            std::cout << "Error 1" << std::endl;
-        }*/
-
-        /*if(i == 29 && allMoves[i].getFrom() == 4 && allMoves[i].getTo() == 2 && depthLeft == 1) {
-            std::cout << "ddaw" << std::endl;
-        }*/
 
         executeMove(allMoves[i]);
-
-        /*if(rooks[0] & (1UL << 3)) {
-            std::cout << "Error 2" << std::endl;
-        }*/
 
         if(depthLeft == SEARCH_DEPTH) {
             if(inCheck(ENEMY(actingTeam))) {
@@ -810,12 +798,9 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
             }
         }
 
-        /*if(depthLeft == 4 && beta == 16383 && allMoves[i].getFrom() == 53 && allMoves[i].getTo() == 37) {
-            std::cout << "dawd" << std::endl;
-        }*/
-
         int score = -alphaBeta(-beta, -alpha, depthLeft - 1, team, bestMove);
         undoLastMove();
+
         if(score >= beta) {
             return beta;
         }

@@ -5,14 +5,16 @@
 
 TEST(KingTest, castlingWhite) {
 
-    U64 occupied = 1UL << 4 | 1UL << 25;
+    U64 king = 1UL << 4;
+    U64 rooks = 1UL | 1UL << 7;
+    U64 occupied = king | rooks | 1UL << 25;
     U64 enemyAttackMap = 1UL << 50 | 1UL << 40;
     int team = 0;
     bool kingMoved[2] = {false, true};
     bool rookMoved[2][2] = {{false, false}, {true, true}};
 
-    std::vector<Move> moves = King::getCastlingMoves(occupied, enemyAttackMap, team, kingMoved,
-                                             rookMoved);
+    std::vector<Move> moves = King::getCastlingMoves(king, rooks, occupied, enemyAttackMap,
+                                                     team, kingMoved, rookMoved);
 
     ASSERT_EQ(moves.size(), 2);
     for(Move move : moves) {
@@ -23,14 +25,16 @@ TEST(KingTest, castlingWhite) {
 
 TEST(KingTest, castlingBlack) {
 
-    U64 occupied = 1UL << 60 | 1UL << 56 | 1UL << 63;
+    U64 king = 1UL << 60;
+    U64 rooks = 1UL << 56 | 1UL << 63;
+    U64 occupied = king | rooks;
     U64 enemyAttackMap = 1UL << 50 | 1UL << 40;
     int team = 1;
     bool kingMoved[2] = {true, false};
     bool rookMoved[2][2] = {{true, true}, {false, false}};
 
-    std::vector<Move> moves = King::getCastlingMoves(occupied, enemyAttackMap, team, kingMoved,
-                                                     rookMoved);
+    std::vector<Move> moves = King::getCastlingMoves(king, rooks, occupied, enemyAttackMap, team,
+                                                     kingMoved, rookMoved);
 
     ASSERT_EQ(moves.size(), 2);
     for(Move move : moves) {
@@ -41,53 +45,62 @@ TEST(KingTest, castlingBlack) {
 
 TEST(KingTest, castlingWhiteBlocked) {
 
-    U64 occupied = 1UL << 4 | 1UL << 25 | 1UL << 5;
+    U64 king = 1UL << 4;
+    U64 rooks = 1UL | 1UL << 7;
+    U64 occupied = king | rooks | 1UL << 25 | 1UL << 5;
     U64 enemyAttackMap = 1UL << 2 | 1UL << 40;
     int team = 0;
     bool kingMoved[2] = {false, true};
     bool rookMoved[2][2] = {{false, false}, {true, true}};
 
-    std::vector<Move> moves = King::getCastlingMoves(occupied, enemyAttackMap, team, kingMoved,
-                                                     rookMoved);
+    std::vector<Move> moves = King::getCastlingMoves(king, rooks, occupied, enemyAttackMap,
+                                                     team, kingMoved, rookMoved);
 
     ASSERT_EQ(moves.size(), 0);
 }
 
 TEST(KingTest, castlingBlackBlocked) {
-    U64 occupied = 1UL << 59 | 1UL << 25 | 1UL << 1;
+
+    U64 king = 1UL << 60;
+    U64 rooks = 1UL << 56 | 1UL << 63;
+    U64 occupied = king | rooks | 1UL << 59 | 1UL << 25 | 1UL << 1;
     U64 enemyAttackMap = 1UL << 2 | 1UL << 61;
     int team = 1;
     bool kingMoved[2] = {true, false};
     bool rookMoved[2][2] = {{false, false}, {false, false}};
 
-    std::vector<Move> moves = King::getCastlingMoves(occupied, enemyAttackMap, team, kingMoved,
-                                                     rookMoved);
+    std::vector<Move> moves = King::getCastlingMoves(king, rooks, occupied, enemyAttackMap, team,
+                                                     kingMoved, rookMoved);
 
     ASSERT_EQ(moves.size(), 0);
 }
 
 TEST(KingTest, castlingWhiteKingMoved) {
+
+    U64 rooks = 1UL | 1UL << 7;
     U64 occupied = 1UL << 4 | 1UL << 25 | 1UL << 10;
     U64 enemyAttackMap = 1UL << 45 | 1UL << 40;
     int team = 0;
     bool kingMoved[2] = {true, true};
     bool rookMoved[2][2] = {{false, false}, {true, true}};
 
-    std::vector<Move> moves = King::getCastlingMoves(occupied, enemyAttackMap, team, kingMoved,
-                                                     rookMoved);
+    std::vector<Move> moves = King::getCastlingMoves(1UL << 3, rooks, occupied, enemyAttackMap,
+                                                     team, kingMoved, rookMoved);
 
     ASSERT_EQ(moves.size(), 0);
 }
 
 TEST(KingTest, castlingBlackKingMoved) {
+
+    U64 rooks = 1UL << 56 | 1UL << 63;
     U64 occupied = 1UL << 4 | 1UL << 25 | 1UL << 10;
     U64 enemyAttackMap = 1UL << 45 | 1UL << 40;
     int team = 1;
     bool kingMoved[2] = {false, true};
     bool rookMoved[2][2] = {{false, false}, {false, false}};
 
-    std::vector<Move> moves = King::getCastlingMoves(occupied, enemyAttackMap, team, kingMoved,
-                                                     rookMoved);
+    std::vector<Move> moves = King::getCastlingMoves(1UL << 23, rooks, occupied, enemyAttackMap, team,
+                                                     kingMoved, rookMoved);
 
     ASSERT_EQ(moves.size(), 0);
 }

@@ -103,6 +103,13 @@ TEST(BoardTest, EvaluationTest) {
 
 }
 
+TEST(BoardTest, Crash) {
+    Board board("rnbqk2r/pppp1pp1/4p2p/8/4P1n1/2PBBN2/PPP1QPPP/R3K2R b KQkq - 3 7");
+
+    Move move = board.getBestMove(1);
+    ASSERT_FALSE(move.getFrom() == 0 && move.getTo() == 0);
+}
+
 TEST(FenTest, StartingPosition) {
     Board fenBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
