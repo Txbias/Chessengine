@@ -98,9 +98,8 @@ TEST(BoardTest, EvaluationTest) {
     Move move(8, 16, FLAG_QUIET);
     board.executeMove(move);
 
-    ASSERT_EQ(board.valuePosition(0), 0);
-    ASSERT_EQ(board.valuePosition(1), 0);
-
+    ASSERT_EQ(board.valuePosition(0), -10);
+    ASSERT_EQ(board.valuePosition(1), 10);
 }
 
 TEST(BoardTest, Crash) {
@@ -108,6 +107,38 @@ TEST(BoardTest, Crash) {
 
     Move move = board.getBestMove(1);
     ASSERT_FALSE(move.getFrom() == 0 && move.getTo() == 0);
+}
+
+TEST(BoardTest, CountMovesStartingPosition) {
+    Board board;
+
+    ASSERT_EQ(board.countMoves(0), 20);
+    ASSERT_EQ(board.countMoves(1), 20);
+}
+
+TEST(BoardTest, CountMovesTest) {
+
+    Board board;
+
+    std::vector<Move> moves = board.getAllMoves(0);
+    for(Move move : moves) {
+        board.executeMove(move);
+
+        int countMovesBlack = board.countMoves(1);
+        ASSERT_EQ(countMovesBlack, board.getAllMoves(1).size());
+
+        board.undoLastMove();
+    }
+
+    moves = board.getAllMoves(1);
+    for(Move move : moves) {
+        board.executeMove(move);
+
+        int countWhiteMoves = board.countMoves(0);
+        ASSERT_EQ(countWhiteMoves, board.getAllMoves(0).size());
+
+        board.undoLastMove();
+    }
 }
 
 TEST(FenTest, StartingPosition) {

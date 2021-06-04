@@ -51,6 +51,7 @@ public:
     bool kingMoved[2];
     bool rookMoved[2][2];
 
+    const int VALUE_MOBILITY = 10;
     const int VALUE_PAWN = 100;
     const int VALUE_KNIGHT = 320;
     const int VALUE_BISHOP = 330;
@@ -73,6 +74,7 @@ public:
     std::string getBoardPrintable();
 
     int valuePosition(int team);
+    int countMoves(int team);
 
     inline unsigned long getOccupied() const {
         return occupied;

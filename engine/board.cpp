@@ -772,6 +772,30 @@ Move Board::getBestMove(int team) {
     return bestMove;
 }
 
+/**
+ * Counts how many moves the given team can make
+ * @param team 0 for white and 1 for black
+ * @return the amount of moves as int
+ */
+int Board::countMoves(int team) {
+
+    int count = 0;
+    int enemyTeam = ENEMY(team);
+
+    count += getCardinality(Pawn::getAttackTargets(pawns[team], team) & pieces[enemyTeam]);
+    count += getCardinality(Pawn::getMoveTargets(pawns[team], ~occupied, team));
+    count += getCardinality(Rook::getTargets(rooks[team], pieces[team],
+                                             pieces[enemyTeam]));
+    count += getCardinality(Knight::getTargets(knights[team], pieces[team]));
+    count += getCardinality(Bishop::getTargets(bishops[team], pieces[team],
+                                               pieces[enemyTeam]));
+    count += getCardinality(Queen::getTargets(queens[team], pieces[team],
+                                              pieces[enemyTeam]));
+    count += getCardinality(King::getTargets(kings[team], pieces[team]));
+
+    return count;
+}
+
 int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove) {
     if(depthLeft == 0) {
         return valuePosition(actingTeam);
@@ -858,6 +882,9 @@ int Board::valuePosition(int team) {
         U64 existsKingEnemy = (1UL << i) & kings[enemy];
         if (existsKingEnemy) value -= VALUE_KING + (King::pieceSquareTableMiddleGame()[pieceSquareIndex(enemy, i)]);
     }
+
+    // Mobility score
+    value += VALUE_MOBILITY * (countMoves(team) - countMoves(enemy));
 
     if(inCheck(team)) {
         value -= 1000;

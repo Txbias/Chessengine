@@ -109,6 +109,20 @@ U64 Pawn::getAttackTargets(U64 pawns, int team) {
     return team == WHITE ? whitePawnAnyAttack(pawns) : blackPawnsAnyAttack(pawns);
 }
 
+U64 Pawn::getMoveTargets(U64 pawns, U64 empty, int team) {
+
+    U64 moveTargets = 0UL;
+    if(team == WHITE) {
+        moveTargets |= whiteSinglePushTargets(pawns, empty);
+        moveTargets |= whiteDblPushTargets(pawns, empty);
+    } else {
+        moveTargets |= blackSinglePushTargets(pawns, empty);
+        moveTargets |= blackDoublePushTargets(pawns, empty);
+    }
+
+    return moveTargets;
+}
+
 U64 Pawn::whitePawnsAble2CaptureAny(U64 whitePawns, U64 blackPieces) {
     return whitePawns & blackPawnsAnyAttack(blackPieces);
 }
