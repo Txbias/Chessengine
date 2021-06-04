@@ -1,6 +1,6 @@
 #include "board.h"
 
-#define SEARCH_DEPTH 4
+#define SEARCH_DEPTH 3
 
 Board::Board() {
     initializePieces();
@@ -798,7 +798,7 @@ int Board::countMoves(int team) {
 
 int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove) {
     if(depthLeft == 0) {
-        return valuePosition(actingTeam);
+        return quiesce(alpha, beta);
     }
 
     std::vector<Move> allMoves = getAllMoves(actingTeam);
@@ -836,6 +836,46 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
         }
     }
 
+    return alpha;
+}
+
+int Board::quiesce(int alpha, int beta) {
+    int standPat = valuePosition(actingTeam);
+
+    if(standPat >= beta) {
+        return beta;
+    } else if(alpha < standPat) {
+        alpha = standPat;
+    }
+
+    std::vector<Move> allMoves = getAllMoves(actingTeam);
+
+    for(Move move : allMoves) {
+        if(!move.isCapture()) {
+            continue;
+        }
+
+        executeMove(move);
+        int score = -quiesce(-beta, -alpha);
+        undoLastMove();
+
+        if(score >= beta) {
+            return beta;
+        }
+
+        int BIG_DELTA = 900;
+        if(move.isPromotion()) {
+            BIG_DELTA += 775;
+        }
+
+        if(score < alpha - BIG_DELTA) {
+            return alpha;
+        }
+
+        if(score > alpha) {
+            alpha = score;
+        }
+    }
     return alpha;
 }
 

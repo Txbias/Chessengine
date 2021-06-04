@@ -33,6 +33,7 @@ private:
     int getTeam(unsigned int square);
     U64 getTargetMap(int team);
     int alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove);
+    int quiesce(int alpha, int beta);
 public:
 
     Board();

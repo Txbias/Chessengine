@@ -204,5 +204,5 @@ TEST(FenTest, infiniteLoop) {
 
     long durationInSeconds = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
 
-    ASSERT_TRUE(durationInSeconds <= 5);
+    ASSERT_TRUE(durationInSeconds <= 15);
 }
