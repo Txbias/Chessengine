@@ -766,7 +766,7 @@ Move Board::getBestMove(int team) {
     actingTeam = team;
 
     Move bestMove(0, 0, 0);
-    alphaBeta(INT16_MIN / 2, INT16_MAX / 2, SEARCH_DEPTH, team, bestMove);
+    alphaBeta(INT16_MIN, INT16_MAX, SEARCH_DEPTH, team, bestMove);
 
     actingTeam = actingTeamBefore;
     return bestMove;
@@ -894,10 +894,10 @@ int Board::valuePosition(int team) {
     }
 
     if(checkMate(team)) {
-        value -= 100000;
+        value -= 10000;
     }
     if(checkMate(ENEMY(team))) {
-        value += 100000;
+        value += 10000;
     }
 
     return value;
