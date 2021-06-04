@@ -798,7 +798,7 @@ int Board::countMoves(int team) {
 
 int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove) {
     if(depthLeft == 0) {
-        return quiesce(alpha, beta);
+        return quiesce(alpha, beta, 0);
     }
 
     std::vector<Move> allMoves = getAllMoves(actingTeam);
@@ -839,7 +839,12 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
     return alpha;
 }
 
-int Board::quiesce(int alpha, int beta) {
+int Board::quiesce(int alpha, int beta, int depth) {
+
+    if(depth == 6) {
+        return valuePosition(actingTeam);
+    }
+
     int standPat = valuePosition(actingTeam);
 
     if(standPat >= beta) {
@@ -856,7 +861,7 @@ int Board::quiesce(int alpha, int beta) {
         }
 
         executeMove(move);
-        int score = -quiesce(-beta, -alpha);
+        int score = -quiesce(-beta, -alpha, depth + 1);
         undoLastMove();
 
         if(score >= beta) {
@@ -904,11 +909,15 @@ int Board::valuePosition(int team) {
         U64 existsBishopEnemy = (1UL << i) & bishops[enemy];
         if (existsBishopEnemy) value -= VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
 
+        int amountPawnsEnemy = getCardinality(pawns[enemy]);
         U64 existsRook = (1UL << i) & rooks[team];
-        if (existsRook) value += VALUE_ROOK + (Rook::pieceSquareTable()[pieceSquareIndex(team, i)]);
+        if (existsRook) value += VALUE_ROOK + (Rook::pieceSquareTable()[pieceSquareIndex(team, i)]) +
+                    ((8 - amountPawnsEnemy) * 10);
 
+        int amountPawns = getCardinality(pawns[team]);
         U64 existsRookEnemy = (1UL << i) & rooks[enemy];
-        if (existsRookEnemy) value -= VALUE_ROOK + (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+        if (existsRookEnemy) value -= VALUE_ROOK + (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)]) +
+                    ((8 - amountPawns) * 10);
 
         U64 existsQueen = (1UL << i) & queens[team];
         if (existsQueen) value += VALUE_QUEEN + (Queen::pieceSquareTable()[pieceSquareIndex(team, i)]);
