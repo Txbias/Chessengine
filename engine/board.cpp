@@ -810,8 +810,6 @@ int Board::countMoves(int team) {
     count += getCardinality(Knight::getTargets(knights[team], pieces[team]));
     count += getCardinality(Bishop::getTargets(bishops[team], pieces[team],
                                                pieces[enemyTeam]));
-    count += getCardinality(Queen::getTargets(queens[team], pieces[team],
-                                              pieces[enemyTeam]));
     count += getCardinality(King::getTargets(kings[team], pieces[team]));
 
     return count;
