@@ -70,6 +70,7 @@ public:
     bool checkMate(int team);
 
     void executeMove(Move move);
+    void executeUserMove(Move move);
     void undoLastMove();
     void printBoard();
     std::string getBoardPrintable();

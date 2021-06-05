@@ -3,8 +3,20 @@
 #define SEARCH_DEPTH 3
 
 Board::Board() {
-    initializePieces();
 
+    pieces[BLACK] = 0UL;
+    pieces[WHITE] = 0UL;
+
+    kingMoved[WHITE] = false;
+    kingMoved[BLACK] = false;
+
+    for(int i = 0; i < 2; i++) {
+        for(int k = 0; k < 2; k++) {
+            rookMoved[i][k] = false;
+        }
+    }
+
+    initializePieces();
 }
 
 Board::Board(const std::string& fen) {
@@ -127,19 +139,6 @@ Board::Board(const std::string& fen) {
 }
 
 void Board::initializePieces() {
-
-    pieces[BLACK] = 0UL;
-    pieces[WHITE] = 0UL;
-
-    kingMoved[WHITE] = false;
-    kingMoved[BLACK] = false;
-
-    for(int i = 0; i < 2; i++) {
-        for(int k = 0; k < 2; k++) {
-            rookMoved[i][k] = false;
-        }
-    }
-
     unsigned long whitePawns = 0;
     whitePawns = setRow(whitePawns, 1);
     pawns[WHITE] = whitePawns;
@@ -219,22 +218,17 @@ void Board::initializePieces() {
     pieces[BLACK] |= blackKing;
 }
 
-void Board::executeMove(Move move) {
-
+/**
+ * Requires no flags to be set for the given move the be executed. Is used
+ * for moves of the enemy.
+ * @param move The move to execute
+ */
+void Board::executeUserMove(Move move) {
     int team = getTeam(move.getFrom());
-    actingTeam = ENEMY(team);
 
     if(move.getTo() == enPassantSquare && getPieceType(move.getFrom(), team) == PAWN) {
         move.setFlags(FLAG_EP_CAPTURE);
     }
-
-    U64 currentEPTarget = enPassantTarget;
-    unsigned int currentEPSquare = enPassantSquare;
-
-    move.setEPSquareBefore(enPassantSquare);
-
-    enPassantTarget = 0UL;
-    enPassantSquare = 0;
 
     unsigned long *targetPieceEnemy = getTargetPieces(move.getTo(), ENEMY(team));
 
@@ -246,6 +240,53 @@ void Board::executeMove(Move move) {
             move.setFlags(FLAG_CAPTURE);
         }
     }
+
+    unsigned long *targetPieces = getTargetPieces(move.getFrom(), team);
+
+    // Check for castling
+    if(targetPieces == kings) {
+        if(move.getFrom() / 8 == 0 && move.getTo() / 8 == 0 && team == WHITE && move.getFrom() == 4) {
+            if(move.getTo() == 6) {
+                move.setFlags(FLAG_KING_CASTLE);
+            } else if(move.getTo() == 2) {
+                move.setFlags(FLAG_QUEEN_CASTLE);
+            }
+        }
+
+        if(move.getFrom() / 8 == 7 && move.getTo() / 8 == 7 && team == BLACK && move.getFrom() == 60) {
+            if(move.getTo() == 62) {
+                move.setFlags(FLAG_KING_CASTLE);
+            } else if(move.getTo() == 58) {
+                move.setFlags(FLAG_QUEEN_CASTLE);
+            }
+        }
+    } else if(targetPieces == pawns) {
+        if(team == WHITE) {
+            if(move.getFrom() / 8 == 1 && move.getTo() / 8 == 3) {
+                move.setFlags(FLAG_PAWN_DBL_PUSH);
+            }
+        } else {
+            if(move.getFrom() / 8 == 6 && move.getTo() / 8 == 4) {
+                move.setFlags(FLAG_PAWN_DBL_PUSH);
+            }
+        }
+    }
+
+    executeMove(move);
+}
+
+void Board::executeMove(Move move) {
+
+    int team = getTeam(move.getFrom());
+    actingTeam = ENEMY(team);
+
+    U64 currentEPTarget = enPassantTarget;
+    unsigned int currentEPSquare = enPassantSquare;
+
+    move.setEPSquareBefore(enPassantSquare);
+
+    enPassantTarget = 0UL;
+    enPassantSquare = 0;
 
     if(move.getFlags() == FLAG_PAWN_DBL_PUSH) {
         if(team == WHITE) {
@@ -279,24 +320,6 @@ void Board::executeMove(Move move) {
         std::cout << "team: " << team << std::endl;
         std::cout << "flags: " << move.getFlags() << std::endl;
         printBoard();
-    }
-
-    if(targetPieces == kings) {
-        if(move.getFrom() / 8 == 0 && move.getTo() / 8 == 0 && team == WHITE && move.getFrom() == 4) {
-            if(move.getTo() == 6) {
-                move.setFlags(FLAG_KING_CASTLE);
-            } else if(move.getTo() == 2) {
-                move.setFlags(FLAG_QUEEN_CASTLE);
-            }
-        }
-
-        if(move.getFrom() / 8 == 7 && move.getTo() / 8 == 7 && team == BLACK && move.getFrom() == 60) {
-            if(move.getTo() == 62) {
-                move.setFlags(FLAG_KING_CASTLE);
-            } else if(move.getTo() == 58) {
-                move.setFlags(FLAG_QUEEN_CASTLE);
-            }
-        }
     }
 
     if(targetPieces == kings) {
@@ -347,32 +370,31 @@ void Board::executeMove(Move move) {
     pieces[team] |= target;
 
     if(move.isCastle()) {
-        U64 originSquare;
         U64 targetSquare;
         if(move.getFlags() == FLAG_KING_CASTLE) {
             // Move rook
             if(team == WHITE) {
                 originSquare = ~(1UL << 7);
-            } else if(team == BLACK) {
+            } else {
                 originSquare = ~(1UL << 63);
             }
 
             if(team == WHITE) {
                 targetSquare = 1UL << 5;
-            } else if(team == BLACK) {
+            } else {
                 targetSquare = 1UL << 61;
             }
 
         } else if(move.getFlags() == FLAG_QUEEN_CASTLE) {
             if(team == WHITE) {
                 originSquare = ~1UL;
-            } else if(team == BLACK) {
+            } else {
                 originSquare = ~(1UL << 56);
             }
 
             if(team == WHITE) {
                 targetSquare = 1UL << 3;
-            } else if(team == BLACK) {
+            } else {
                 targetSquare = 1UL << 59;
             }
         } else {
@@ -458,32 +480,31 @@ void Board::undoLastMove() {
     }
 
     if(move.isCastle()) {
-        U64 originSquare;
         U64 targetSquare;
         if(move.getFlags() == FLAG_KING_CASTLE) {
             // Move rook
             if(team == WHITE) {
                 originSquare = ~(1UL << 5);
-            } else if(team == BLACK) {
+            } else {
                 originSquare = ~(1UL << 61);
             }
 
             if(team == WHITE) {
                 targetSquare = 1UL << 7;
-            } else if(team == BLACK) {
+            } else {
                 targetSquare = 1UL << 63;
             }
 
         } else if(move.getFlags() == FLAG_QUEEN_CASTLE) {
             if(team == WHITE) {
                 originSquare = ~(1UL << 3);
-            } else if(team == BLACK) {
+            } else {
                 originSquare = ~(1UL << 59);
             }
 
             if(team == WHITE) {
                 targetSquare = 1UL;
-            } else if(team == BLACK) {
+            } else {
                 targetSquare = 1UL << 56;
             }
         } else {

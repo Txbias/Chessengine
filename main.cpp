@@ -41,7 +41,7 @@ int main() {
                 team = 1;
             }
 
-            board.executeMove(Move::fromNotation(move));
+            board.executeUserMove(Move::fromNotation(move));
 
             Logger::debug(board.getBoardPrintable());
 
