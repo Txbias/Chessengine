@@ -44,12 +44,12 @@ std::vector<Move> Queen::getMoves(U64 queens, U64 ownPieces, U64 enemyPieces) {
     return moves;
 }
 
-U64 Queen::getTargets(U64 queens, U64 ownPieces, U64 enemyPieces) {
+U64 Queen::getTargets(U64 queens, U64 ownPieces, U64 enemyPieces, bool countBlocked) {
 
     std::vector<bitShiftFunction> directions = {
             northOne, southOne, eastOne, westOne,
             northEast, northWest, southEast, southWest
     };
 
-    return getSlidingTargets(queens, ownPieces, enemyPieces, directions);
+    return getSlidingTargets(queens, ownPieces, enemyPieces, directions, countBlocked);
 }

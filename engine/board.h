@@ -31,7 +31,7 @@ private:
     unsigned int getPieceType(unsigned int targetSquare, int team);
     unsigned long* getTargetPieces(unsigned int targetSquare, int team);
     int getTeam(unsigned int square);
-    U64 getTargetMap(int team);
+    U64 getTargetMap(int team, bool includeKing=true, bool countBlocked=false);
     int alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove);
     int quiesce(int alpha, int beta, int depth);
 public:

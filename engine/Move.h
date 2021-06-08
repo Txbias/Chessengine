@@ -46,6 +46,10 @@ public:
         return (m_move >> 12) & 0x0f;
     }
 
+    unsigned int getTeam() const {
+        return team;
+    }
+
     unsigned int getCapturedPiece() {
         return captured;
     }
@@ -80,6 +84,10 @@ public:
 
     void setCapturedPiece(unsigned int captured) {
         this->captured = captured;
+    }
+
+    void setTeam(unsigned int team) {
+        this->team = team;
     }
 
     void setInitialMoveKing() {
@@ -146,6 +154,7 @@ private:
     unsigned int m_move;
     unsigned int captured;
     unsigned int epSquareBefore;
+    unsigned int team;
     bool initialMoveKing = false;
     bool initialMoveRook = false;
 

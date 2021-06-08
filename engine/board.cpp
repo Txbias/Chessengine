@@ -1,6 +1,8 @@
 #include "board.h"
 
 #define SEARCH_DEPTH 3
+#define MIN(x, y) (x < y ? x : y)
+#define MAX(x, y) (x > y ? x : y)
 
 Board::Board() {
 
@@ -278,6 +280,7 @@ void Board::executeUserMove(Move move) {
 void Board::executeMove(Move move) {
 
     int team = getTeam(move.getFrom());
+    move.setTeam(team);
     actingTeam = ENEMY(team);
 
     U64 currentEPTarget = enPassantTarget;
@@ -684,15 +687,20 @@ int Board::getTeam(unsigned int square) {
     }
 }
 
-U64 Board::getTargetMap(int team) {
+U64 Board::getTargetMap(int team, bool includeKing, bool countBlocked) {
     U64 targets = 0UL;
     int enemyTeam = ENEMY(team);
-    targets |= Pawn::getAttackTargets(pawns[team], team);
-    targets |= Rook::getTargets(rooks[team], pieces[team], pieces[enemyTeam]);
+    targets |= (Pawn::getAttackTargets(pawns[team], team) & pieces[enemyTeam]);
+    targets |= Rook::getTargets(rooks[team], pieces[team],
+                                pieces[enemyTeam], countBlocked);
     targets |= Knight::getTargets(knights[team], pieces[team]);
-    targets |= Bishop::getTargets(bishops[team], pieces[team], pieces[enemyTeam]);
-    targets |= Queen::getTargets(queens[team], pieces[team], pieces[enemyTeam]);
-    targets |= King::getTargets(kings[team], pieces[team]);
+    targets |= Bishop::getTargets(bishops[team], pieces[team],
+                                  pieces[enemyTeam], countBlocked);
+    targets |= Queen::getTargets(queens[team], pieces[team],
+                                 pieces[enemyTeam], countBlocked);
+    if(includeKing) {
+        targets |= King::getTargets(kings[team], pieces[team]);
+    }
 
     return targets;
 }
@@ -704,7 +712,7 @@ bool Board::inCheck(int team) {
 
 bool Board::checkMate(int team) {
     int enemyTeam = ENEMY(team);
-    U64 enemyTargets = getTargetMap(enemyTeam);
+    U64 enemyTargets = getTargetMap(enemyTeam, true);
 
     if(!(enemyTargets & kings[team])) {
         // Not even check
@@ -725,16 +733,22 @@ bool Board::checkMate(int team) {
 
     int attacksOnKing = 0;
     int canBeCaptured = 0;
-    for(Move move : enemyMoves) {
-        if(!(kings[team] & (1UL << move.getTo()))) {
+    unsigned int pieceType = -1;
+    Move *attackingMove;
+    int attackingMoveIndex = -1;
+    for(int i = 0; i < enemyMoves.size(); i++) {
+        if(!(kings[team] & (1UL << enemyMoves[i].getTo()))) {
             // Piece doesn't attack king
             continue;
         }
 
-        if(ownTeamTargets & (1UL << move.getFrom())) {
+        if(ownTeamTargets & (1UL << enemyMoves[i].getFrom())) {
             // Attacking piece can be captured
             canBeCaptured++;
         }
+
+        pieceType = getPieceType(enemyMoves[i].getFrom(), enemyTeam);
+        attackingMoveIndex = i;
 
         attacksOnKing++;
     }
@@ -744,42 +758,111 @@ bool Board::checkMate(int team) {
         return false;
     }
 
+    if(attacksOnKing == 2) {
+        return true;
+    }
+
+    // Check if check can be blocked by own piece
+    if(pieceType == KNIGHT || pieceType == PAWN) {
+        return true;
+    }
+
+    unsigned int from = enemyMoves[attackingMoveIndex].getFrom();
+    unsigned int to = enemyMoves[attackingMoveIndex].getTo();
+
+    U64 inBetweenSquares = 0UL;
+    int min = MIN(from, to);
+    int max = MAX(from, to);
+
+    if(from / 8 == to / 8) {
+        for(int i = min + 1; i < max; i++) {
+            inBetweenSquares |= (1UL << i);
+        }
+    } else if(from % 8 == to % 8) {
+        for(int i = min; i < max; i+= 8) {
+            inBetweenSquares |= (1UL << i);
+        }
+    } else {
+        U64 fromBitboard = 1UL << from;
+        U64 toBitboard = 1UL << to;
+        if(from > to) {
+            // north -> south
+            if(from % 8 > to % 8) {
+                //north east -> south west
+                while((fromBitboard = (southWest(fromBitboard) & ~toBitboard))) {
+                    inBetweenSquares |= fromBitboard;
+                }
+            } else {
+                // north west -> south east
+                while((fromBitboard = (southEast(fromBitboard) & ~toBitboard))) {
+                    inBetweenSquares |= fromBitboard;
+                }
+            }
+        } else {
+            // south -> north
+            if(from % 8 > to % 8) {
+                // south east -> north west
+                while((fromBitboard = (northWest(fromBitboard) & ~toBitboard))) {
+                    inBetweenSquares |= fromBitboard;
+                }
+            } else {
+                // south west -> north east
+                while((fromBitboard = (northEast(fromBitboard) & ~toBitboard))) {
+                    inBetweenSquares |= fromBitboard;
+                }
+            }
+        }
+    }
+
+    U64 attackMapWithOutKing = getTargetMap(team, false);
+    attackMapWithOutKing |= Pawn::getMoveTargets(pawns[team], ~occupied, team);
+
+
+    if(inBetweenSquares & attackMapWithOutKing) {
+        return false;
+    }
+
     return true;
 }
 
 std::vector<Move> Board::getAllMoves(int team) {
-    std::vector<Move> moves;
+    std::vector<Move> allMoves;
     U64 empty = ~occupied;
 
     int enemyTeam = team == WHITE ? BLACK : WHITE;
     U64 enemyPieces = pieces[enemyTeam];
     U64 ownPieces = pieces[team];
 
+    U64 localEPTarget = enPassantTarget;
+    if(actingTeam != team) {
+        localEPTarget = 0UL;
+    }
+
     std::vector<Move> pawnMoves = Pawn::getMoves(pawns[team], empty, enemyPieces,
-                                                 enPassantTarget, team);
-    moves.insert(moves.end(), std::begin(pawnMoves), std::end(pawnMoves));
+                                                 localEPTarget, team);
+    allMoves.insert(allMoves.end(), std::begin(pawnMoves), std::end(pawnMoves));
 
     std::vector<Move> knightMoves = Knight::getMoves(knights[team], enemyPieces, ownPieces);
-    moves.insert(moves.end(), std::begin(knightMoves), std::end(knightMoves));
+    allMoves.insert(allMoves.end(), std::begin(knightMoves), std::end(knightMoves));
 
     std::vector<Move> rookMoves = Rook::getMoves(rooks[team], ownPieces, enemyPieces);
-    moves.insert(moves.end(), std::begin(rookMoves), std::end(rookMoves));
+    allMoves.insert(allMoves.end(), std::begin(rookMoves), std::end(rookMoves));
 
     std::vector<Move> bishopMoves = Bishop::getMoves(bishops[team], ownPieces, enemyPieces);
-    moves.insert(moves.end(), std::begin(bishopMoves), std::end(bishopMoves));
+    allMoves.insert(allMoves.end(), std::begin(bishopMoves), std::end(bishopMoves));
 
     std::vector<Move> queenMoves = Queen::getMoves(queens[team], ownPieces, enemyPieces);
-    moves.insert(moves.end(), std::begin(queenMoves), std::end(queenMoves));
+    allMoves.insert(allMoves.end(), std::begin(queenMoves), std::end(queenMoves));
 
     std::vector<Move> kingMoves = King::getMoves(kings[team], ownPieces, enemyPieces);
-    moves.insert(moves.end(), std::begin(kingMoves), std::end(kingMoves));
+    allMoves.insert(allMoves.end(), std::begin(kingMoves), std::end(kingMoves));
 
     std::vector<Move> castleMoves = King::getCastlingMoves(kings[team], rooks[team], occupied,
                                                            getTargetMap(enemyTeam),
                                                            team, kingMoved, rookMoved);
-    moves.insert(moves.end(), std::begin(castleMoves), std::end(castleMoves));
+    allMoves.insert(allMoves.end(), std::begin(castleMoves), std::end(castleMoves));
 
-    return moves;
+    return allMoves;
 }
 
 Move Board::getBestMove(int team) {
@@ -959,13 +1042,6 @@ int Board::valuePosition(int team) {
     }
     if(inCheck(ENEMY(team))) {
         value += 1000;
-    }
-
-    if(checkMate(team)) {
-        value -= 10000;
-    }
-    if(checkMate(ENEMY(team))) {
-        value += 10000;
     }
 
     return value;
