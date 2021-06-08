@@ -69,22 +69,14 @@ TEST(BoardTest, InCheckTest)  {
     Move move(13, 13+16, FLAG_QUIET);
     board.executeMove(move);
 
-    board.printBoard();
-
     Move move2(52, 52-16, FLAG_QUIET);
     board.executeMove(move2);
-
-    board.printBoard();
 
     Move move3(8, 16, FLAG_QUIET);
     board.executeMove(move3);
 
-    board.printBoard();
-
     Move move4(59, 31, FLAG_QUIET);
     board.executeMove(move4);
-
-    board.printBoard();
 
     ASSERT_TRUE(board.inCheck(0));
 }
@@ -205,4 +197,16 @@ TEST(FenTest, infiniteLoop) {
     long durationInSeconds = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
 
     ASSERT_TRUE(durationInSeconds <= 15);
+}
+
+TEST(CheckMate, CanBeBlocked) {
+    Board board("rnb1kbnr/pp1ppppp/8/q1p5/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 3");
+
+    ASSERT_FALSE(board.checkMate(0));
+}
+
+TEST(CheckMate, mate) {
+    Board board("rnbqkbnr/ppppp2p/8/5ppQ/8/3PP3/PPP2PPP/RNB1KBNR b KQkq - 1 3");
+
+    ASSERT_TRUE(board.checkMate(1));
 }
