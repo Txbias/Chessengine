@@ -886,6 +886,33 @@ bool Board::checkMate(int team) {
     return true;
 }
 
+bool Board::isStaleMate(int team) {
+
+    U64 targetMap = getTargetMap(team, false);
+    targetMap |= Pawn::getMoveTargets(pawns[team], ~occupied, team);
+
+    if(targetMap) {
+        return false;
+    }
+
+    if(inCheck(team) || checkMate(team)) {
+        return false;
+    }
+
+    U64 kingTargetMap = King::getTargets(kings[team], pieces[team]);
+
+    if(!kingTargetMap) {
+        return true;
+    }
+
+
+    U64 enemyTargetMap = getTargetMap(ENEMY(team), true, true);
+
+    enemyTargetMap |= Pawn::getAttackTargets(pawns[ENEMY(team)], ENEMY(team));
+
+    return !(kingTargetMap & ~enemyTargetMap);
+}
+
 std::vector<Move> Board::getAllMoves(int team) {
     std::vector<Move> allMoves;
     U64 empty = ~occupied;
@@ -974,10 +1001,9 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
         executeMove(allMoves[i]);
 
-        if(threeFoldRepetition) {
-            std::cout << "Threefold repetition" << std::endl;
+        if(threeFoldRepetition || isStaleMate(ENEMY(actingTeam)) || isStaleMate(actingTeam)) {
             undoLastMove();
-            int evaluation = valuePosition(ENEMY(actingTeam));
+            int evaluation = valuePosition(actingTeam);
 
             if(evaluation >= 0) {
                 return -5000;
@@ -1039,10 +1065,9 @@ int Board::quiesce(int alpha, int beta, int depth) {
 
         executeMove(move);
 
-        if(threeFoldRepetition) {
-            std::cout << "Threefold repetition" << std::endl;
+        if(threeFoldRepetition || isStaleMate(actingTeam) || isStaleMate(ENEMY(actingTeam))) {
             undoLastMove();
-            int evaluation = valuePosition(ENEMY(actingTeam));
+            int evaluation = valuePosition(actingTeam);
 
             if(evaluation >= 0) {
                 return -5000;

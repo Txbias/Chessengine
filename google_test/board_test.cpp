@@ -159,6 +159,25 @@ TEST(BoardTest, RepetitionDraw) {
     ASSERT_FALSE(board.threeFoldRepetition);
 }
 
+TEST(BoardTest, StaleMate) {
+    Board board("7r/p2n1k1p/2pb3p/1r1n4/2K3p1/8/3q4/8 w - - 2 30");
+
+    ASSERT_TRUE(board.isStaleMate(0));
+}
+
+TEST(BoardTest, NotStaleMate) {
+    Board board("7r/p2n1k1p/2pb3p/1r1n4/2K3p1/8/7q/8 b - - 1 29");
+
+    ASSERT_FALSE(board.isStaleMate(0));
+}
+
+TEST(BoardTest, AvoidStalemate) {
+    Board board("7r/p2n1k1p/2pb3p/1r1n4/2K3p1/8/7q/8 b - - 1 29");
+
+    Move move = board.getBestMove(1);
+    ASSERT_NE(Move::toNotation(move), "h2d2");
+}
+
 TEST(FenTest, StartingPosition) {
     Board fenBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
