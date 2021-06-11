@@ -3,8 +3,10 @@
 #include <vector>
 #include <stack>
 #include <cctype>
+#include <map>
 
 #include "Move.h"
+#include "position.h"
 #include "pieces/pawns.h"
 #include "pieces/knight.h"
 #include "pieces/rook.h"
@@ -40,6 +42,7 @@ public:
     Board(const std::string& fen);
 
     std::stack<Move> moves;
+    std::map<Position, int> positions;
 
     unsigned long pieces[2];
     unsigned long pawns[2];
@@ -51,6 +54,7 @@ public:
 
     bool kingMoved[2];
     bool rookMoved[2][2];
+    bool threeFoldRepetition = false;
 
     const int VALUE_MOBILITY = 10;
     const int VALUE_PAWN = 100;
@@ -65,9 +69,11 @@ public:
 
     std::vector<Move> getAllMoves(int team);
     Move getBestMove(int team);
+    Position getCurrentPosition();
 
     bool inCheck(int team);
     bool checkMate(int team);
+    bool isStaleMate(int team);
 
     void executeMove(Move move);
     void executeUserMove(Move move);

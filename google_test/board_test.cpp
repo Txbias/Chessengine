@@ -140,6 +140,25 @@ TEST(BoardTest, CountMovesTest) {
     }
 }
 
+TEST(BoardTest, RepetitionDraw) {
+    Board board("2k5/5pp1/3Q4/2K5/2P4p/4qP2/P7/8 w - - 3 47");
+
+    board.executeMove(Move(34, 25, FLAG_QUIET));
+    board.executeMove(Move(20, 4, FLAG_QUIET));
+    board.executeMove(Move(25, 34, FLAG_QUIET));
+    board.executeMove(Move(4, 20, FLAG_QUIET));
+    board.executeMove(Move(34, 25, FLAG_QUIET));
+    board.executeMove(Move(20, 4, FLAG_QUIET));
+    board.executeMove(Move(25, 34, FLAG_QUIET));
+    ASSERT_FALSE(board.threeFoldRepetition);
+    board.executeMove(Move(4, 20, FLAG_QUIET));
+
+    ASSERT_TRUE(board.threeFoldRepetition);
+    board.undoLastMove();
+
+    ASSERT_FALSE(board.threeFoldRepetition);
+}
+
 TEST(FenTest, StartingPosition) {
     Board fenBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 

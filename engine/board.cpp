@@ -19,6 +19,9 @@ Board::Board() {
     }
 
     initializePieces();
+
+    Position position = getCurrentPosition();
+    positions.insert(std::make_pair(position, 1));
 }
 
 Board::Board(const std::string& fen) {
@@ -138,6 +141,8 @@ Board::Board(const std::string& fen) {
     enPassantSquare =  row * 8 + file;
     enPassantTarget = 1UL << enPassantSquare;
 
+    Position position = getCurrentPosition();
+    positions.insert(std::make_pair(position, 1));
 }
 
 void Board::initializePieces() {
@@ -281,7 +286,6 @@ void Board::executeMove(Move move) {
 
     int team = getTeam(move.getFrom());
     move.setTeam(team);
-    actingTeam = ENEMY(team);
 
     U64 currentEPTarget = enPassantTarget;
     unsigned int currentEPSquare = enPassantSquare;
@@ -432,12 +436,44 @@ void Board::executeMove(Move move) {
     }
 
     moves.push(move);
+
+    // Save current position
+    Position position = getCurrentPosition();
+
+    auto it = positions.find(position);
+    if(it == positions.end()) {
+        // New position
+        positions.insert(std::make_pair(position, 1));
+    } else {
+        it->second++;
+        if(it->second == 3) {
+            threeFoldRepetition = true;
+        }
+    }
+
+    actingTeam = ENEMY(team);
 }
 
 void Board::undoLastMove() {
     if(moves.empty()) {
         std::cerr << "No move left!" << std::endl;
         return;
+    }
+
+    Position positionBeforeUnDone = getCurrentPosition();
+    auto it = positions.find(positionBeforeUnDone);
+
+    if(it == positions.end()) {
+        std::cout << "Unknown position" << std::endl;
+    }
+
+    if(it->second == 1) {
+        positions.erase(it);
+    } else {
+        if(it->second == 3) {
+            threeFoldRepetition = false;
+        }
+        it->second--;
     }
 
     Move move = moves.top();
@@ -569,6 +605,31 @@ void Board::undoLastMove() {
 
     enPassantSquare = move.getEPSquareBefore();
     enPassantTarget = 1UL << move.getEPSquareBefore();
+}
+
+Position Board::getCurrentPosition() {
+
+    U64 currPiecesPosition[2][6];
+    bool canCastle[2][2];
+
+    for(int i = 0; i < 2; i++) {
+        currPiecesPosition[i][0] = pawns[i];
+        currPiecesPosition[i][1] = knights[i];
+        currPiecesPosition[i][2] = bishops[i];
+        currPiecesPosition[i][3] = rooks[i];
+        currPiecesPosition[i][4] = queens[i];
+        currPiecesPosition[i][5] = kings[i];
+
+        if(kingMoved[i]) {
+            canCastle[i][0] = false;
+            canCastle[i][1] = false;
+        } else {
+            canCastle[i][0] = !rookMoved[i][0];
+            canCastle[i][1] = !rookMoved[i][1];
+        }
+    }
+
+    return Position(actingTeam, enPassantSquare, canCastle, currPiecesPosition);
 }
 
 void Board::printBoard() {
@@ -905,17 +966,27 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
     std::vector<Move> allMoves = getAllMoves(actingTeam);
 
-    if(allMoves.empty() && inCheck(actingTeam)) {
-        return INT16_MAX / 2;
-    }
-
-    if(allMoves.empty() && !inCheck(actingTeam)) {
-        return INT16_MIN / 2;
+    if(checkMate(actingTeam)) {
+        return -30000;
     }
 
     for(int i = 0; i < allMoves.size(); i++) {
 
         executeMove(allMoves[i]);
+
+        if(threeFoldRepetition) {
+            std::cout << "Threefold repetition" << std::endl;
+            undoLastMove();
+            int evaluation = valuePosition(ENEMY(actingTeam));
+
+            if(evaluation >= 0) {
+                return -5000;
+            } else if(evaluation < -500) {
+                return 5000;
+            } else {
+                return 100;
+            }
+        }
 
         if(depthLeft == SEARCH_DEPTH) {
             if(inCheck(ENEMY(actingTeam))) {
@@ -947,6 +1018,10 @@ int Board::quiesce(int alpha, int beta, int depth) {
         return valuePosition(actingTeam);
     }
 
+    if(checkMate(actingTeam)) {
+        return -30000;
+    }
+
     int standPat = valuePosition(actingTeam);
 
     if(standPat >= beta) {
@@ -963,6 +1038,21 @@ int Board::quiesce(int alpha, int beta, int depth) {
         }
 
         executeMove(move);
+
+        if(threeFoldRepetition) {
+            std::cout << "Threefold repetition" << std::endl;
+            undoLastMove();
+            int evaluation = valuePosition(ENEMY(actingTeam));
+
+            if(evaluation >= 0) {
+                return -5000;
+            } else if(evaluation < -500) {
+                return 5000;
+            } else {
+                return 100;
+            }
+        }
+
         int score = -quiesce(-beta, -alpha, depth + 1);
         undoLastMove();
 
@@ -1037,11 +1127,10 @@ int Board::valuePosition(int team) {
     // Mobility score
     value += VALUE_MOBILITY * (countMoves(team) - countMoves(enemy));
 
-    if(inCheck(team)) {
-        value -= 1000;
-    }
-    if(inCheck(ENEMY(team))) {
-        value += 1000;
+    if(checkMate(ENEMY(team))) {
+        value += 30000;
+    } else if(checkMate(team)) {
+        value -= 30000;
     }
 
     return value;
