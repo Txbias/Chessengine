@@ -17,14 +17,14 @@ std::array<int, 64> Knight::pieceSquareTable() {
     return table;
 }
 
-U64 Knight::noNoEa(U64 b) {return (b << 17) & notAFile ;}
-U64 Knight::noEaEa(U64 b) {return (b << 10) & notABFile;}
-U64 Knight::soEaEa(U64 b) {return (b >>  6) & notABFile;}
-U64 Knight::soSoEa(U64 b) {return (b >> 15) & notAFile ;}
-U64 Knight::noNoWe(U64 b) {return (b << 15) & notHFile ;}
-U64 Knight::noWeWe(U64 b) {return (b <<  6) & notGHFile;}
-U64 Knight::soWeWe(U64 b) {return (b >> 10) & notGHFile;}
-U64 Knight::soSoWe(U64 b) {return (b >> 17) & notHFile ;}
+constexpr U64 Knight::noNoEa(const U64 b) {return (b << 17) & notAFile ;}
+constexpr U64 Knight::noEaEa(const U64 b) {return (b << 10) & notABFile;}
+constexpr U64 Knight::soEaEa(const U64 b) {return (b >>  6) & notABFile;}
+constexpr U64 Knight::soSoEa(const U64 b) {return (b >> 15) & notAFile ;}
+constexpr U64 Knight::noNoWe(const U64 b) {return (b << 15) & notHFile ;}
+constexpr U64 Knight::noWeWe(const U64 b) {return (b <<  6) & notGHFile;}
+constexpr U64 Knight::soWeWe(const U64 b) {return (b >> 10) & notGHFile;}
+constexpr U64 Knight::soSoWe(const U64 b) {return (b >> 17) & notHFile ;}
 
 
 U64 Knight::getTargets(U64 knights, U64 ownPieces) {
@@ -38,18 +38,6 @@ U64 Knight::getTargets(U64 knights, U64 ownPieces) {
     targets |= soSoWe(knights);
 
     return targets & (~ownPieces);
-}
-
-std::string getBits(U64 bitboard) {
-    std::string res;
-    for(int i = 0; i < 64; i++) {
-        if(bitboard & 1UL << i) {
-            res += "1";
-        } else {
-            res += "0";
-        }
-    }
-    return res;
 }
 
 U64 Knight::getOriginKnights(U64 knights, U64 target, U64 ownPieces) {

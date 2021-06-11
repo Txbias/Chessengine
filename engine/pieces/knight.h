@@ -12,20 +12,18 @@ namespace Knight {
 
     std::array<int, 64> pieceSquareTable();
 
-    const U64 notAFile = ~setFile(0UL, 0);
-    const U64 notABFile = ~setFile(~notAFile, 1);
-    const U64 notHFile = ~setFile(0UL, 7);
-    const U64 notGHFile = ~setFile(~notHFile, 6);
-    U64 noNoEa(U64 b);
-    U64 noEaEa(U64 b);
-    U64 soEaEa(U64 b);
-    U64 soSoEa(U64 b);
-    U64 noNoWe(U64 b);
-    U64 noWeWe(U64 b);
-    U64 soWeWe(U64 b);
-    U64 soSoWe(U64 b);
-
-    std::string getBits(U64 bitboard);
+    const U64 notAFile = 0xFEFEFEFEFEFEFEFE;
+    const U64 notABFile = 0xFCFCFCFCFCFCFCFC;
+    const U64 notHFile = 0x7F7F7F7F7F7F7F7F;
+    const U64 notGHFile = 0x3F3F3F3F3F3F3F3F;
+    constexpr U64 noNoEa(U64 b);
+    constexpr U64 noEaEa(U64 b);
+    constexpr U64 soEaEa(U64 b);
+    constexpr U64 soSoEa(U64 b);
+    constexpr U64 noNoWe(U64 b);
+    constexpr U64 noWeWe(U64 b);
+    constexpr U64 soWeWe(U64 b);
+    constexpr U64 soSoWe(U64 b);
 
     U64 getTargets(U64 knights, U64 ownPieces);
     U64 getOriginKnights(U64 knights, U64 target, U64 ownPieces);
