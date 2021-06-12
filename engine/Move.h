@@ -50,7 +50,7 @@ public:
         return team;
     }
 
-    unsigned int getCapturedPiece() {
+    unsigned long* getCapturedPiece() {
         return captured;
     }
 
@@ -82,7 +82,7 @@ public:
         m_move = ((flags & 0xf) << 12) | ((getFrom() & 0x3f) << 6) | (getTo() & 0x3f);
     }
 
-    void setCapturedPiece(unsigned int captured) {
+    void setCapturedPiece(unsigned long* captured) {
         this->captured = captured;
     }
 
@@ -152,7 +152,7 @@ public:
 
 private:
     unsigned int m_move;
-    unsigned int captured;
+    unsigned long* captured;
     unsigned int epSquareBefore;
     unsigned int team;
     bool initialMoveKing = false;

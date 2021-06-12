@@ -306,13 +306,13 @@ void Board::executeMove(Move move) {
     }
 
     if(move.isCapture()) {
-        unsigned int pieceType;
+        unsigned long* pieceType;
         if(move.getFlags() == FLAG_EP_CAPTURE) {
-            pieceType = PAWN;
+            pieceType = pawns;
         } else {
-            pieceType = getPieceType(move.getTo(), ENEMY(team));
+            pieceType = getTargetPieces(move.getTo(), ENEMY(team));
         }
-        if(pieceType == -1) {
+        if(pieceType == nullptr) {
             std::cerr << "Des ist net gut" << std::endl;
         }
 
@@ -560,30 +560,7 @@ void Board::undoLastMove() {
     }
 
     if(move.isCapture()) {
-        //TODO: just save the pointer to the captured pieces bitboard
-        unsigned int capturedPiece = move.getCapturedPiece();
-        unsigned long* capturedPieces;
-
-        switch(capturedPiece) {
-            case PAWN:
-                capturedPieces = pawns;
-                break;
-            case ROOK:
-                capturedPieces = rooks;
-                break;
-            case KNIGHT:
-                capturedPieces = knights;
-                break;
-            case BISHOP:
-                capturedPieces = bishops;
-                break;
-            case QUEEN:
-                capturedPieces = queens;
-                break;
-            case KING:
-                capturedPieces = kings;
-                break;
-        }
+        unsigned long* capturedPieces = move.getCapturedPiece();
 
         currentPos = ~currentPos;
         if(move.getFlags() == FLAG_EP_CAPTURE) {
