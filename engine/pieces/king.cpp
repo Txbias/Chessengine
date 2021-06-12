@@ -17,23 +17,13 @@ std::array<int, 64> King::pieceSquareTableMiddleGame() {
 
 std::vector<Move> King::getMoves(U64 king, U64 ownPieces, U64 enemyPieces) {
 
-    unsigned int from;
-
-    for(unsigned int i = 0; i < 64; i++) {
-        if(king & (1UL << i)) {
-            from = i;
-        }
-    }
-
+    unsigned int from = bitScanForward(king);
     U64 attackedFields = getTargets(king, ownPieces);
 
     std::vector<Move> moves;
+    std::vector<int> setBits = getSetBits(attackedFields);
 
-    for(unsigned int i = 0; i < 64; i++) {
-        if(!(attackedFields & (1UL << i))) {
-            continue;
-        }
-
+    for(int i : setBits) {
         unsigned int flag = getFlag(i, enemyPieces);
 
         Move move(from, i, flag);

@@ -9,6 +9,10 @@ int getCardinality(unsigned long bitboard) {
     return (int) bitboard;
 }
 
+int bitScanForward(U64 bitboard) {
+    return getCardinality((bitboard & -bitboard) - 1);
+}
+
 void setBit(unsigned long &bitboard, unsigned int pos) {
     bitboard |= (1UL << pos);
 }
@@ -61,6 +65,17 @@ U64 southWest(U64 bitboard){
     return westOne(southOne(bitboard));
 }
 
+std::vector<int> getSetBits(U64 bitboard) {
+    std::vector<int> indices(64);
+    int index = 0;
+    if(bitboard) do {
+        indices[index++] = bitScanForward(bitboard);
+    } while(bitboard &= bitboard - 1);
+    indices.resize(index);
+
+    return indices;
+}
+
 std::vector<Move> getSlidingMovesNorth(U64 pieces, U64 ownPieces, U64 enemyPieces) {
     return getSlidingMoves(northOne, southOne, pieces, ownPieces, enemyPieces);
 }
@@ -101,10 +116,10 @@ std::vector<Move> getSlidingMoves(bitShiftFunction direction, bitShiftFunction o
     U64 ownPiecesWithoutMoving = ownPieces & ~slidingPieces;
 
     while((slidingPieces = direction(slidingPieces)) != 0) {
-        for(unsigned int i = 0; i < 64; i++) {
-            if(!(slidingPieces & (1UL << i))) {
-                continue;
-            }
+
+        std::vector<int> setBits = getSetBits(slidingPieces);
+
+        for(int i : setBits) {
 
             if(ownPieces & (1UL << i)) {
                 U64 u = 1UL << i;

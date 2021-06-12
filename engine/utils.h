@@ -26,6 +26,7 @@ const U64 k4 = 0x0f0f0f0f0f0f0f0f;
 const U64 kf = 0x0101010101010101;
 
 int getCardinality(unsigned long bitboard);
+int bitScanForward(U64 bitboard);
 
 U64 eastOne(U64 bitboard);
 U64 westOne(U64 bitboard);
@@ -40,6 +41,8 @@ void setBit(unsigned long &bitboard, unsigned int pos);
 unsigned long setRow(unsigned long bitboard, unsigned int row);
 unsigned long setFile(unsigned long bitboard, unsigned long file);
 unsigned int getFlag(unsigned int target, U64 enemyPieces);
+
+std::vector<int> getSetBits(U64 bitboard);
 
 std::vector<Move> getSlidingMovesNorth(U64 pieces, U64 ownPieces, U64 enemyPieces);
 std::vector<Move> getSlidingMovesSouth(U64 pieces, U64 ownPieces, U64 enemyPieces);

@@ -52,23 +52,22 @@ std::vector<Move> Knight::getMoves(U64 knights, U64 enemyPieces, U64 ownPieces) 
 
     U64 knightTargets = getTargets(knights, ownPieces);
 
-    for(int i = 0; i < 64; i++) {
-        if(knightTargets & (1UL << i)) {
-            int flag = FLAG_QUIET;
-            if(enemyPieces & (1UL << i)) {
-                // Enemy piece at target position
-                flag = FLAG_CAPTURE;
-            }
+    std::vector<int> setBits = getSetBits(knightTargets);
 
-            U64 originKnights = getOriginKnights(knights, 1UL << i, ownPieces);
+    for(int i : setBits) {
+        int flag = FLAG_QUIET;
+        if(enemyPieces & (1UL << i)) {
+            // Enemy piece at target position
+            flag = FLAG_CAPTURE;
+        }
 
-            for(int k = 0; k < 64; k++) {
-                if(originKnights & (1UL << k)) {
-                    Move move(k, i, flag);
-                    moves.emplace_back(move);
-                }
-            }
+        U64 originKnights = getOriginKnights(knights, 1UL << i, ownPieces);
 
+        std::vector<int> originSetBits = getSetBits(originKnights);
+
+        for(int k : originSetBits) {
+            Move move(k, i, flag);
+            moves.emplace_back(move);
         }
     }
 
