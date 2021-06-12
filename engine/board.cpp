@@ -482,7 +482,7 @@ void Board::undoLastMove() {
     int team = getTeam(move.getTo());
     int enemyTeam = ENEMY(team);
 
-    actingTeam = enemyTeam;
+    actingTeam = ENEMY(actingTeam);
 
     unsigned long* movedPieces = getTargetPieces(move.getTo(), team);
 
@@ -935,7 +935,7 @@ Move Board::getBestMove(int team) {
     actingTeam = team;
 
     Move bestMove(0, 0, 0);
-    alphaBeta(INT16_MIN, INT16_MAX, SEARCH_DEPTH, team, bestMove);
+    alphaBeta(INT32_MIN / 100, INT32_MAX / 100, SEARCH_DEPTH, team, bestMove);
 
     actingTeam = actingTeamBefore;
     return bestMove;
@@ -978,25 +978,26 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
         executeMove(allMoves[i]);
 
-        if(threeFoldRepetition || isStaleMate(ENEMY(actingTeam)) || isStaleMate(actingTeam)) {
+        if(depthLeft == SEARCH_DEPTH) {
+            if (inCheck(ENEMY(actingTeam))) {
+                undoLastMove();
+                continue;
+            }
+        }
+
+        if(threeFoldRepetition || isStaleMate(actingTeam)) {
             undoLastMove();
             int evaluation = valuePosition(actingTeam);
 
             if(evaluation >= 0) {
-                return -5000;
+                return -100;
             } else if(evaluation < -500) {
-                return 5000;
+                return 200;
             } else {
                 return 100;
             }
         }
 
-        if(depthLeft == SEARCH_DEPTH) {
-            if(inCheck(ENEMY(actingTeam))) {
-                undoLastMove();
-                continue;
-            }
-        }
 
         int score = -alphaBeta(-beta, -alpha, depthLeft - 1, team, bestMove);
         undoLastMove();
@@ -1006,7 +1007,7 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
         }
         if(score > alpha) {
             alpha = score;
-            if(actingTeam == ENEMY(team) && depthLeft == SEARCH_DEPTH) {
+            if(actingTeam == team && depthLeft == SEARCH_DEPTH) {
                 bestMove = allMoves[i];
             }
         }
@@ -1042,14 +1043,18 @@ int Board::quiesce(int alpha, int beta, int depth) {
 
         executeMove(move);
 
-        if(threeFoldRepetition || isStaleMate(actingTeam) || isStaleMate(ENEMY(actingTeam))) {
+        if(inCheck(ENEMY(actingTeam))) {
+            undoLastMove();
+            continue;
+        }
+
+        if(threeFoldRepetition || isStaleMate(actingTeam)) {
             undoLastMove();
             int evaluation = valuePosition(actingTeam);
-
             if(evaluation >= 0) {
-                return -5000;
+                return -100;
             } else if(evaluation < -500) {
-                return 5000;
+                return 200;
             } else {
                 return 100;
             }

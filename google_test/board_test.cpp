@@ -108,6 +108,14 @@ TEST(BoardTest, Crash2) {
     ASSERT_FALSE(move.getFrom() == 0 && move.getTo() == 0);
 }
 
+TEST(BoardTest, Crash3) {
+    Board board("5k2/2K5/5Q2/2p5/p1P5/P7/8/8 b - - 6 75");
+
+    Move move = board.getBestMove(1);
+
+    ASSERT_FALSE(move.getFrom() == 0 && move.getTo() == 0);
+}
+
 TEST(BoardTest, CountMovesStartingPosition) {
     Board board;
 
