@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "pieces/queen.h"
+#include "queen.h"
 
 TEST(QueenTest, normalMove) {
     U64 queens = 1UL << 35;

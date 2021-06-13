@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "pieces/rook.h"
+#include "rook.h"
 
 TEST(RookTest, normalMove) {
 

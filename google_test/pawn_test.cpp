@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "pieces/pawns.h"
+#include "pawns.h"
 #include "board.h"
 
 

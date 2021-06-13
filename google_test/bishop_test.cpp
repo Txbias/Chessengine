@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "pieces/bishop.h"
+#include "bishop.h"
 
 TEST(BishopTest, normalMoveFromWhiteSquare) {
     U64 bishops = 1UL << 35;

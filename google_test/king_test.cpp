@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "pieces/king.h"
+#include "king.h"
 #include "board.h"
 #include "utils.h"
 

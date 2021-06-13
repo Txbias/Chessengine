@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "pieces/knight.h"
+#include "knight.h"
 
 TEST(KnightTest, normalMove) {
     U64 knights = 1UL << 35;
