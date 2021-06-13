@@ -26,7 +26,7 @@ private:
     const int WHITE = 0;
     const int BLACK = 1;
 
-    int actingTeam = -1;
+    int actingTeam = 0;
 
     void initializePieces();
 
@@ -80,6 +80,7 @@ public:
     void undoLastMove();
     void printBoard();
     std::string getBoardPrintable();
+    std::string getFENString();
 
     int valuePosition(int team);
     int countMoves(int team);

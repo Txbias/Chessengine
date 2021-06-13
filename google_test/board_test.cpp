@@ -245,6 +245,21 @@ TEST(FenTest, infiniteLoop) {
     ASSERT_TRUE(durationInSeconds <= 15);
 }
 
+TEST(FenGenerationTest, StartingPosition) {
+    Board board;
+
+    ASSERT_EQ(board.getFENString(),
+              "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+}
+
+TEST(FenGenerationTest, AfterOneMove) {
+    Board board;
+
+    board.executeMove(Move(12, 12 + 16, FLAG_PAWN_DBL_PUSH));
+    ASSERT_EQ(board.getFENString(),
+              "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+}
+
 TEST(CheckMate, CanBeBlocked) {
     Board board("rnb1kbnr/pp1ppppp/8/q1p5/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 1 3");
 

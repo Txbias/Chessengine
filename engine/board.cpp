@@ -670,6 +670,97 @@ std::string Board::getBoardPrintable() {
     return output;
 }
 
+std::string Board::getFENString() {
+
+    std::string fenString;
+
+    for(int i = 7; i >= 0; i--) {
+        int countEmpty = 0;
+        for(int k = 0; k < 8; k++) {
+            int positionIndex = i * 8 + k;
+            U64 position = 1UL << positionIndex;
+
+            if(!(occupied & position)) {
+                countEmpty++;
+                continue;
+            } else {
+                if(countEmpty != 0) {
+                    fenString += std::to_string(countEmpty);
+                    countEmpty = 0;
+                }
+            }
+
+            for(int p = 0; p <= 1; p++) {
+                if(pawns[p] & position) {
+                    fenString += (char) ('P' + (p * 32));
+                    break;
+                } else if(rooks[p] & position) {
+                    fenString += (char) ('R' + (p * 32));
+                    break;
+                } else if(knights[p] & position) {
+                    fenString += (char) ('N' + (p * 32));
+                    break;
+                } else if(bishops[p] & position) {
+                    fenString += (char) ('B' + (p * 32));
+                    break;
+                } else if(queens[p] & position) {
+                    fenString += (char) ('Q' + (p * 32));
+                    break;
+                } else if(kings[p] & position) {
+                    fenString += (char) ('K' + (p * 32));
+                    break;
+                }
+            }
+
+        }
+        if(countEmpty != 0) {
+            fenString += std::to_string(countEmpty);
+        }
+        if(i != 0) {
+            fenString += '/';
+        }
+    }
+
+    fenString += ' ';
+    fenString += actingTeam == 0 ? "w " : "b ";
+
+    unsigned long length = fenString.length();
+
+    for(int i = 0; i < 2; i++) {
+        if(kingMoved[i]) {
+            continue;
+        }
+
+        if(!rookMoved[i][0]) {
+            fenString += (char) ('K' + (i * 32));
+        }
+        if(!rookMoved[i][1]) {
+            fenString += (char) ('Q' + (i * 32));
+        }
+    }
+
+    fenString += ' ';
+
+    if(length == fenString.length()) {
+        // No side can castle
+        fenString += "- ";
+    }
+
+    if(moves.size() != 0 || enPassantSquare != 0) {
+        fenString += Move::toNotation(enPassantSquare);
+    } else {
+        fenString += '-';
+    }
+    fenString += " ";
+
+    //TODO: implement half move clock
+    fenString += "0 ";
+
+    fenString += std::to_string((moves.size() / 2) + 1);
+
+    return fenString;
+}
+
 unsigned long * Board::getTargetPieces(unsigned int targetSquare, int team) {
     unsigned int pieceType = getPieceType(targetSquare, team);
 
