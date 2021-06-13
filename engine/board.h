@@ -7,12 +7,12 @@
 
 #include "Move.h"
 #include "position.h"
-#include "pieces/pawns.h"
-#include "pieces/knight.h"
-#include "pieces/rook.h"
-#include "pieces/bishop.h"
-#include "pieces/queen.h"
-#include "pieces/king.h"
+#include "pawns.h"
+#include "knight.h"
+#include "rook.h"
+#include "bishop.h"
+#include "queen.h"
+#include "king.h"
 
 #define ENEMY(team) (team == 0  ? 1 : 0)
 
