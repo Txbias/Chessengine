@@ -186,6 +186,17 @@ TEST(BoardTest, AvoidStalemate) {
     ASSERT_NE(Move::toNotation(move), "h2d2");
 }
 
+TEST(BoardTest, FullMoveCount) {
+    Board board;
+
+    for(int i = 0; i < 5; i++) {
+        Move move = board.getAllMoves(i % 2)[0];
+        board.executeMove(move);
+    }
+
+    ASSERT_EQ(board.amountFullMoves, 3);
+}
+
 TEST(FenTest, StartingPosition) {
     Board fenBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
@@ -245,6 +256,16 @@ TEST(FenTest, infiniteLoop) {
     ASSERT_TRUE(durationInSeconds <= 15);
 }
 
+TEST(FenTest, FullMoveCount) {
+    Board board("8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 50");
+
+    ASSERT_EQ(board.amountFullMoves, 50);
+
+    Board board2("8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 9");
+
+    ASSERT_EQ(board2.amountFullMoves, 9);
+}
+
 TEST(FenGenerationTest, StartingPosition) {
     Board board;
 
@@ -258,6 +279,13 @@ TEST(FenGenerationTest, AfterOneMove) {
     board.executeMove(Move(12, 12 + 16, FLAG_PAWN_DBL_PUSH));
     ASSERT_EQ(board.getFENString(),
               "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+}
+
+TEST(FenGenerationTest, castling) {
+    std::string fen = "rnbk2nr/pp1p1ppp/1p1bp3/8/8/B7/P1PPPPPP/q2QKBNR b K - 0 1";
+    Board board(fen);
+
+    ASSERT_EQ(board.getFENString(), fen);
 }
 
 TEST(CheckMate, CanBeBlocked) {

@@ -64,6 +64,8 @@ public:
     const int VALUE_QUEEN = 900;
     const int VALUE_KING = 20000;
 
+    int amountFullMoves = 1;
+
     U64 enPassantTarget = 0UL;
     unsigned int enPassantSquare = 0;
 

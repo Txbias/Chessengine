@@ -135,11 +135,25 @@ Board::Board(const std::string& fen) {
 
     fenPosition++;
 
-    int file = fen.at(fenPosition) - 97;
-    int row = (fen.at(fenPosition + 1) - 48) - 1;
+    if(fen.at(fenPosition) != '-') {
+        // En passant target
+        int file = fen.at(fenPosition) - 97;
+        int row = (fen.at(fenPosition + 1) - 48) - 1;
 
-    enPassantSquare =  row * 8 + file;
-    enPassantTarget = 1UL << enPassantSquare;
+        enPassantSquare = row * 8 + file;
+        enPassantTarget = 1UL << enPassantSquare;
+        fenPosition++;
+    }
+
+    fenPosition += 2;
+    //TODO: implement half move clock
+
+    fenPosition++;
+    if(fen.at(fenPosition) != ' ') {
+        fenPosition++;
+    }
+
+    amountFullMoves = std::stoi(fen.substr(fenPosition));
 
     Position position = getCurrentPosition();
     positions.insert(std::make_pair(position, 1));
@@ -452,6 +466,9 @@ void Board::executeMove(Move move) {
     }
 
     actingTeam = ENEMY(team);
+    if(team == BLACK) {
+        amountFullMoves++;
+    }
 }
 
 void Board::undoLastMove() {
@@ -582,6 +599,10 @@ void Board::undoLastMove() {
 
     enPassantSquare = move.getEPSquareBefore();
     enPassantTarget = 1UL << move.getEPSquareBefore();
+
+    if(team == BLACK) {
+        amountFullMoves--;
+    }
 }
 
 Position Board::getCurrentPosition() {
@@ -746,7 +767,7 @@ std::string Board::getFENString() {
         fenString += "- ";
     }
 
-    if(moves.size() != 0 || enPassantSquare != 0) {
+    if(!moves.empty() || enPassantSquare != 0) {
         fenString += Move::toNotation(enPassantSquare);
     } else {
         fenString += '-';
@@ -756,7 +777,7 @@ std::string Board::getFENString() {
     //TODO: implement half move clock
     fenString += "0 ";
 
-    fenString += std::to_string((moves.size() / 2) + 1);
+    fenString += std::to_string(amountFullMoves);
 
     return fenString;
 }
