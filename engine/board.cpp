@@ -1045,6 +1045,10 @@ int Board::valueMove(const std::string &fen, const Move &move, int team) {
     Board board(fen);
     board.executeMove(move);
 
+    if(board.inCheck(team)) {
+        return 30000;
+    }
+
     Move bestMove(0, 0, 0);
     int value = board.alphaBeta(INT32_MIN / 100, INT32_MAX / 100,
                           SEARCH_DEPTH - 1, ENEMY(team), bestMove);
@@ -1076,11 +1080,11 @@ Move Board::getBestMove(int team) {
 
                 int value = -valueMove(fen, move, team);
                 std::lock_guard<std::mutex> bestMoveLock(bestMoveMutex);
-                if (bestMove.getFrom() == 0 && bestMove.getTo() == 0) {
+                if (bestMove.getFrom() == 0 && bestMove.getTo() == 0 && value != -30000) {
                     bestMove = move;
                     bestMoveValue = value;
                 } else {
-                    if (value > bestMoveValue) {
+                    if (value > bestMoveValue && value != -30000) {
                         bestMove = move;
                         bestMoveValue = value;
                     }
@@ -1133,11 +1137,9 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
         executeMove(allMoves[i]);
 
-        if(depthLeft == SEARCH_DEPTH) {
-            if (inCheck(ENEMY(actingTeam))) {
-                undoLastMove();
-                continue;
-            }
+        if (inCheck(ENEMY(actingTeam))) {
+            undoLastMove();
+            continue;
         }
 
         if(threeFoldRepetition || isStaleMate(actingTeam)) {

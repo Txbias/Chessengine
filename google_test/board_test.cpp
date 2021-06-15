@@ -197,6 +197,14 @@ TEST(BoardTest, FullMoveCount) {
     ASSERT_EQ(board.amountFullMoves, 3);
 }
 
+TEST(BoardTest, InCheck) {
+    Board board("1r1qr3/2p2pp1/5k1p/3p4/P1pB2Q1/7P/1PP2PP1/4R1K1 b - - 7 25");
+
+    Move move = board.getBestMove(1);
+
+    ASSERT_FALSE(Move::toNotation(move) == "e8e1");
+}
+
 TEST(FenTest, StartingPosition) {
     Board fenBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
