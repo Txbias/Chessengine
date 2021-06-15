@@ -4,6 +4,8 @@
 #include <stack>
 #include <cctype>
 #include <map>
+#include <thread>
+#include <mutex>
 
 #include "Move.h"
 #include "position.h"
@@ -14,6 +16,8 @@
 #include "queen.h"
 #include "king.h"
 
+#define SEARCH_DEPTH 3
+#define AMOUNT_THREADS 6
 #define ENEMY(team) (team == 0  ? 1 : 0)
 
 class Board {
@@ -23,10 +27,8 @@ class Board {
 private:
     unsigned long occupied = 0;
 
-    const int WHITE = 0;
-    const int BLACK = 1;
-
-    int actingTeam = 0;
+    static const int WHITE = 0;
+    static const int BLACK = 1;
 
     void initializePieces();
 
@@ -56,15 +58,16 @@ public:
     bool rookMoved[2][2];
     bool threeFoldRepetition = false;
 
-    const int VALUE_MOBILITY = 10;
-    const int VALUE_PAWN = 100;
-    const int VALUE_KNIGHT = 320;
-    const int VALUE_BISHOP = 330;
-    const int VALUE_ROOK = 500;
-    const int VALUE_QUEEN = 900;
-    const int VALUE_KING = 20000;
+    static const int VALUE_MOBILITY = 10;
+    static const int VALUE_PAWN = 100;
+    static const int VALUE_KNIGHT = 320;
+    static const int VALUE_BISHOP = 330;
+    static const int VALUE_ROOK = 500;
+    static const int VALUE_QUEEN = 900;
+    static const int VALUE_KING = 20000;
 
     int amountFullMoves = 1;
+    int actingTeam = 0;
 
     U64 enPassantTarget = 0UL;
     unsigned int enPassantSquare = 0;
@@ -86,6 +89,8 @@ public:
 
     int valuePosition(int team);
     int countMoves(int team);
+
+    static int valueMove(const std::string &fen, const Move &move, int team);
 
     inline unsigned long getOccupied() const {
         return occupied;

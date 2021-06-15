@@ -1,6 +1,5 @@
 #include "board.h"
 
-#define SEARCH_DEPTH 3
 #define MIN(x, y) (x < y ? x : y)
 #define MAX(x, y) (x > y ? x : y)
 
@@ -1042,14 +1041,58 @@ std::vector<Move> Board::getAllMoves(int team) {
     return allMoves;
 }
 
-Move Board::getBestMove(int team) {
-    int actingTeamBefore = actingTeam;
-    actingTeam = team;
+int Board::valueMove(const std::string &fen, const Move &move, int team) {
+    Board board(fen);
+    board.executeMove(move);
 
     Move bestMove(0, 0, 0);
-    alphaBeta(INT32_MIN / 100, INT32_MAX / 100, SEARCH_DEPTH, team, bestMove);
+    int value = board.alphaBeta(INT32_MIN / 100, INT32_MAX / 100,
+                          SEARCH_DEPTH - 1, ENEMY(team), bestMove);
 
-    actingTeam = actingTeamBefore;
+    return value;
+}
+
+Move Board::getBestMove(int team) {
+    std::vector<Move> allMoves = getAllMoves(team);
+    std::vector<std::thread> threads(AMOUNT_THREADS);
+    std::mutex moveMutex;
+
+    std::string fen = getFENString();
+
+    Move bestMove(0, 0, 0);
+    int bestMoveValue;
+    std::mutex bestMoveMutex;
+
+    for(int i = 0; i < AMOUNT_THREADS; i++) {
+        threads[i] = std::thread([&]() {
+            while(true) {
+                std::unique_lock<std::mutex> moveLock(moveMutex);
+                if (allMoves.empty()) {
+                    return;
+                }
+                Move move = allMoves[0];
+                allMoves.erase(allMoves.begin());
+                moveLock.unlock();
+
+                int value = -valueMove(fen, move, team);
+                std::lock_guard<std::mutex> bestMoveLock(bestMoveMutex);
+                if (bestMove.getFrom() == 0 && bestMove.getTo() == 0) {
+                    bestMove = move;
+                    bestMoveValue = value;
+                } else {
+                    if (value > bestMoveValue) {
+                        bestMove = move;
+                        bestMoveValue = value;
+                    }
+                }
+            }
+        });
+    }
+
+    for(int i = 0; i < AMOUNT_THREADS; i++) {
+        threads[i].join();
+    }
+
     return bestMove;
 }
 
@@ -1129,11 +1172,6 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 }
 
 int Board::quiesce(int alpha, int beta, int depth) {
-
-    if(depth == 6) {
-        return valuePosition(actingTeam);
-    }
-
     if(checkMate(actingTeam)) {
         return -30000;
     }
