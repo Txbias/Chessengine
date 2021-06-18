@@ -19,7 +19,6 @@
 
 #define SEARCH_DEPTH 3
 #define AMOUNT_THREADS 6
-#define ENEMY(team) (team == 0  ? 1 : 0)
 
 class Board {
 

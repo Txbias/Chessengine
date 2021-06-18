@@ -65,6 +65,24 @@ U64 southWest(U64 bitboard){
     return westOne(southOne(bitboard));
 }
 
+U64 northFill(U64 bitboard) {
+    bitboard |= (bitboard <<  8);
+    bitboard |= (bitboard << 16);
+    bitboard |= (bitboard << 32);
+    return bitboard;
+}
+
+U64 southFill(U64 bitboard) {
+    bitboard |= (bitboard >>  8);
+    bitboard |= (bitboard >> 16);
+    bitboard |= (bitboard >> 32);
+    return bitboard;
+}
+
+U64 fileFill(U64 bitboard) {
+    return southFill(bitboard) | northFill(bitboard);
+}
+
 std::vector<int> getSetBits(U64 bitboard) {
     std::vector<int> indices(64);
     int index = 0;

@@ -12,6 +12,8 @@
 #define FLAG_QUEEN_PROMOTION 11
 #define FLAG_QUEEN_PROMOTION_CAPTURE 15
 
+#define ENEMY(team) (team == 0  ? 1 : 0)
+
 typedef unsigned long U64;
 typedef U64(*bitShiftFunction)(U64);
 
@@ -36,6 +38,10 @@ U64 northEast(U64 bitboard);
 U64 northWest(U64 bitboard);
 U64 southEast(U64 bitboard);
 U64 southWest(U64 bitboard);
+
+U64 northFill(U64 bitboard);
+U64 southFill(U64 bitboard);
+U64 fileFill(U64 bitboard);
 
 void setBit(unsigned long &bitboard, unsigned int pos);
 unsigned long setRow(unsigned long bitboard, unsigned int row);

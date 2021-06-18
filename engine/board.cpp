@@ -1249,6 +1249,8 @@ int Board::valuePosition(int team) {
     int value = 0;
     int enemy = ENEMY(team);
 
+    int countBishops[2] = {};
+
     for(int i = 0; i < 64; i++) {
         U64 existsPawn = (1UL << i) & pawns[team];
         if (existsPawn) value += VALUE_PAWN + (Pawn::pieceSquareTable()[pieceSquareIndex(team, i)]);
@@ -1263,20 +1265,24 @@ int Board::valuePosition(int team) {
         if (existsKnightEnemy) value -= VALUE_KNIGHT + (Knight::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
 
         U64 existsBishop = (1UL << i) & bishops[team];
-        if (existsBishop) value += VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(team, i)]);
+        if (existsBishop) {
+            value += VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(team, i)]);
+            countBishops[team]++;
+        }
 
         U64 existsBishopEnemy = (1UL << i) & bishops[enemy];
-        if (existsBishopEnemy) value -= VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+        if (existsBishopEnemy) {
+            value -= VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+            countBishops[enemy]++;
+        }
 
         int amountPawnsEnemy = getCardinality(pawns[enemy]);
         U64 existsRook = (1UL << i) & rooks[team];
-        if (existsRook) value += VALUE_ROOK + (Rook::pieceSquareTable()[pieceSquareIndex(team, i)]) +
-                    ((8 - amountPawnsEnemy) * 10);
+        if (existsRook) value += Rook::getRookValue(pawns, i, team) + (Rook::pieceSquareTable()[pieceSquareIndex(team, i)]);
 
         int amountPawns = getCardinality(pawns[team]);
         U64 existsRookEnemy = (1UL << i) & rooks[enemy];
-        if (existsRookEnemy) value -= VALUE_ROOK + (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)]) +
-                    ((8 - amountPawns) * 10);
+        if (existsRookEnemy) value -= Rook::getRookValue(pawns, i, enemy) + (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
 
         U64 existsQueen = (1UL << i) & queens[team];
         if (existsQueen) value += VALUE_QUEEN + (Queen::pieceSquareTable()[pieceSquareIndex(team, i)]);
@@ -1293,6 +1299,14 @@ int Board::valuePosition(int team) {
 
     // Mobility score
     value += VALUE_MOBILITY * (countMoves(team) - countMoves(enemy));
+
+    // Bonus for bishop pair
+    if(countBishops[team] == 2) {
+        value += 50;
+    }
+    if(countBishops[enemy] == 2) {
+        value -= 50;
+    }
 
     if(checkMate(ENEMY(team))) {
         value += 30000;
