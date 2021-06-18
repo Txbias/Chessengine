@@ -9,6 +9,7 @@
 
 #include "Move.h"
 #include "position.h"
+#include "thread_pool.h"
 #include "pawns.h"
 #include "knight.h"
 #include "rook.h"

@@ -1049,6 +1049,16 @@ int Board::valueMove(const std::string &fen, const Move &move, int team) {
         return 30000;
     }
 
+    if(board.isStaleMate(team) || board.isStaleMate(ENEMY(team))) {
+        int value = board.valuePosition(team);
+
+        if(value > 0) {
+            return 5000;
+        } else {
+            return -500;
+        }
+    }
+
     Move bestMove(0, 0, 0);
     int value = board.alphaBeta(INT32_MIN / 100, INT32_MAX / 100,
                           SEARCH_DEPTH - 1, ENEMY(team), bestMove);
@@ -1058,7 +1068,6 @@ int Board::valueMove(const std::string &fen, const Move &move, int team) {
 
 Move Board::getBestMove(int team) {
     std::vector<Move> allMoves = getAllMoves(team);
-    std::vector<std::thread> threads(AMOUNT_THREADS);
     std::mutex moveMutex;
 
     std::string fen = getFENString();
@@ -1067,34 +1076,33 @@ Move Board::getBestMove(int team) {
     int bestMoveValue;
     std::mutex bestMoveMutex;
 
-    for(int i = 0; i < AMOUNT_THREADS; i++) {
-        threads[i] = std::thread([&]() {
-            while(true) {
-                std::unique_lock<std::mutex> moveLock(moveMutex);
-                if (allMoves.empty()) {
-                    return;
-                }
-                Move move = allMoves[0];
-                allMoves.erase(allMoves.begin());
-                moveLock.unlock();
+    std::vector<std::future<void>> futures(allMoves.size());
 
-                int value = -valueMove(fen, move, team);
-                std::lock_guard<std::mutex> bestMoveLock(bestMoveMutex);
-                if (bestMove.getFrom() == 0 && bestMove.getTo() == 0 && value != -30000) {
+    const unsigned long size = allMoves.size();
+    int index = 0;
+    for(int i = 0; i < size; i++) {
+        futures[i] = ThreadPool::getInstance().enqueue([&] {
+            std::unique_lock<std::mutex> moveLock(moveMutex);
+            Move move = allMoves[0];
+            allMoves.erase(allMoves.begin());
+            moveLock.unlock();
+
+            int value = -valueMove(fen, move, team);
+            std::lock_guard<std::mutex> bestMoveLock(bestMoveMutex);
+            if (bestMove.getFrom() == 0 && bestMove.getTo() == 0 && value != -30000) {
+                bestMove = move;
+                bestMoveValue = value;
+            } else {
+                if (value > bestMoveValue && value != -30000) {
                     bestMove = move;
                     bestMoveValue = value;
-                } else {
-                    if (value > bestMoveValue && value != -30000) {
-                        bestMove = move;
-                        bestMoveValue = value;
-                    }
                 }
             }
         });
     }
 
-    for(int i = 0; i < AMOUNT_THREADS; i++) {
-        threads[i].join();
+    for(auto &future : futures) {
+        future.wait();
     }
 
     return bestMove;
