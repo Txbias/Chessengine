@@ -35,6 +35,24 @@ U64 soutOne(U64 bitboard) {
     return bitboard >> 8;
 }
 
+U64 Pawn::passedPawns(U64 pawns[2], int team) {
+    return team == 0 ? wPassedPawns(pawns) : bPassedPawns(pawns);
+}
+
+U64 Pawn::wPassedPawns(U64 pawns[2]) {
+    U64 allFrontSpans = bFrontSpans(pawns[1]);
+    allFrontSpans |= eastOne(allFrontSpans)
+                  |  westOne(allFrontSpans);
+    return pawns[0] & ~allFrontSpans;
+}
+
+U64 Pawn::bPassedPawns(U64 pawns[2]) {
+    U64 allFrontSpans = wFrontSpans(pawns[0]);
+    allFrontSpans |= eastOne(allFrontSpans)
+                  |  westOne(allFrontSpans);
+    return pawns[1] & ~allFrontSpans;
+}
+
 U64 Pawn::whiteSinglePushTargets(U64 whitePawns, U64 empty) {
     return nortOne(whitePawns) & empty;
 }

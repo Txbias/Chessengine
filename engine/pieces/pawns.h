@@ -25,6 +25,10 @@ namespace Pawn {
 
     U64 noWeOne(U64 b);
 
+    U64 wPassedPawns(U64 pawns[2]);
+    U64 bPassedPawns(U64 pawns[2]);
+    U64 passedPawns(U64 pawns[2], int team);
+
     U64 whiteSinglePushTargets(U64 whitePawns, U64 empty);
 
     U64 blackSinglePushTargets(U64 blackPawns, U64 empty);

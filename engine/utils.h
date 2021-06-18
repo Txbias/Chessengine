@@ -43,6 +43,9 @@ U64 northFill(U64 bitboard);
 U64 southFill(U64 bitboard);
 U64 fileFill(U64 bitboard);
 
+U64 wFrontSpans(U64 bitboard);
+U64 bFrontSpans(U64 bitboard);
+
 void setBit(unsigned long &bitboard, unsigned int pos);
 unsigned long setRow(unsigned long bitboard, unsigned int row);
 unsigned long setFile(unsigned long bitboard, unsigned long file);

@@ -83,6 +83,14 @@ U64 fileFill(U64 bitboard) {
     return southFill(bitboard) | northFill(bitboard);
 }
 
+U64 wFrontSpans(U64 bitboard) {
+    return northOne(northFill(bitboard));
+}
+
+U64 bFrontSpans(U64 bitboard) {
+    return southOne(southFill(bitboard));
+}
+
 std::vector<int> getSetBits(U64 bitboard) {
     std::vector<int> indices(64);
     int index = 0;

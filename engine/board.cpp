@@ -1308,6 +1308,12 @@ int Board::valuePosition(int team) {
         value -= 50;
     }
 
+    int passedPawns = getCardinality(Pawn::passedPawns(pawns, team));
+    int enemyPassedPawns = getCardinality(Pawn::passedPawns(pawns, enemy));
+
+    value += passedPawns * 10;
+    value -= enemyPassedPawns * 10;
+
     if(checkMate(ENEMY(team))) {
         value += 30000;
     } else if(checkMate(team)) {
