@@ -8,20 +8,7 @@
 
 namespace King {
 
-
-
-    /*int pieceSquareTableEndGame[64] {
-            -50,-40,-30,-20,-20,-30,-40,-50,
-            -30,-20,-10,  0,  0,-10,-20,-30,
-            -30,-10, 20, 30, 30, 20,-10,-30,
-            -30,-10, 30, 40, 40, 30,-10,-30,
-            -30,-10, 30, 40, 40, 30,-10,-30,
-            -30,-10, 20, 30, 30, 20,-10,-30,
-            -30,-30,  0,  0,  0,  0,-30,-30,
-            -50,-30,-30,-30,-30,-30,-30,-50,
-    };*/
-
-    std::array<int, 64> pieceSquareTableMiddleGame();
+    std::array<int, 64> pieceSquareTable(U64 queens[2]);
 
 
     std::vector<Move> getMoves(U64 king, U64 ownPieces, U64 enemyPieces);

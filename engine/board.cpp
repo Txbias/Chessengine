@@ -1285,10 +1285,10 @@ int Board::valuePosition(int team) {
         if (existsQueenEnemy) value -= VALUE_QUEEN + (Queen::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
 
         U64 existsKing = (1UL << i) & kings[team];
-        if (existsKing) value += VALUE_KING + (King::pieceSquareTableMiddleGame()[pieceSquareIndex(team, i)]);
+        if (existsKing) value += VALUE_KING + (King::pieceSquareTable(queens)[pieceSquareIndex(team, i)]);
 
         U64 existsKingEnemy = (1UL << i) & kings[enemy];
-        if (existsKingEnemy) value -= VALUE_KING + (King::pieceSquareTableMiddleGame()[pieceSquareIndex(enemy, i)]);
+        if (existsKingEnemy) value -= VALUE_KING + (King::pieceSquareTable(queens)[pieceSquareIndex(enemy, i)]);
     }
 
     // Mobility score

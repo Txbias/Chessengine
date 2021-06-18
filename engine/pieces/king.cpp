@@ -1,7 +1,7 @@
 #include "king.h"
 
-std::array<int, 64> King::pieceSquareTableMiddleGame() {
-    constexpr const std::array<int, 64> table = {
+std::array<int, 64> King::pieceSquareTable(U64 queens[2]) {
+    constexpr const std::array<int, 64> middleGameTable = {
             -30,-40,-40,-50,-50,-40,-40,-30,
             -30,-40,-40,-50,-50,-40,-40,-30,
             -30,-40,-40,-50,-50,-40,-40,-30,
@@ -12,7 +12,22 @@ std::array<int, 64> King::pieceSquareTableMiddleGame() {
             20, 30, 10,  0,  0, 10, 30, 20,
     };
 
-    return table;
+    constexpr const std::array<int, 64> endGameTable = {
+            -50,-40,-30,-20,-20,-30,-40,-50,
+            -30,-20,-10,  0,  0,-10,-20,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 30, 40, 40, 30,-10,-30,
+            -30,-10, 20, 30, 30, 20,-10,-30,
+            -30,-30,  0,  0,  0,  0,-30,-30,
+            -50,-30,-30,-30,-30,-30,-30,-50,
+    };
+
+    if(!getCardinality(queens[0]) && !getCardinality(queens[1])) {
+        return endGameTable;
+    } else {
+        return middleGameTable;
+    }
 }
 
 std::vector<Move> King::getMoves(U64 king, U64 ownPieces, U64 enemyPieces) {
