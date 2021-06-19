@@ -89,6 +89,7 @@ public:
 
     int valuePosition(int team);
     int countMoves(int team);
+    int countDoublePawns(int team);
 
     static int valueMove(const std::string &fen, const Move &move, int team);
 

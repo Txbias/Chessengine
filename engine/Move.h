@@ -22,7 +22,7 @@ class Move {
 public:
     Move(unsigned int from, unsigned int to, unsigned int flags) {
         m_move = ((flags & 0xf) << 12) | ((from & 0x3f) << 6) | (to & 0x3f);
-        captured = 0;
+        captured = nullptr;
     }
     friend std::ostream& operator<<(std::ostream& os, const Move& move) {
         os << toNotation(move.getFrom()) << " " << toNotation(move.getTo())

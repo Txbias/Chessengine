@@ -22,7 +22,7 @@ int Rook::getRookValue(const U64 pawns[2], int square, int team) {
     int value = BASE_VALUE;
 
     int countPawnsEnemy = getCardinality(pawns[ENEMY(team)]);
-    value += (8 - countPawnsEnemy) * 10;
+    value += (8 - countPawnsEnemy) * 5;
 
     U64 wFileFill = fileFill(pawns[0]);
     U64 bFileFill = fileFill(pawns[1]);
@@ -31,11 +31,11 @@ int Rook::getRookValue(const U64 pawns[2], int square, int team) {
     U64 rook = 1UL << square;
 
     if(!(rook & fileFill)) {
-        value += 30;
+        value += 25;
     } else if(!(rook & wFileFill) || !(rook & bFileFill)) {
-        value += 15;
+        value += 12;
     } else {
-        value -= 15;
+        value -= 12;
     }
 
     return value;

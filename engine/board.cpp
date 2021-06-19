@@ -1243,6 +1243,29 @@ int Board::quiesce(int alpha, int beta, int depth) {
     return alpha;
 }
 
+int Board::countDoublePawns(int team) {
+    static const U64 aFile = 0x101010101010101;
+    static const U64 bFile = 0x202020202020202;
+    static const U64 cFile = 0x404040404040404;
+    static const U64 dFile = 0x808080808080808;
+    static const U64 eFile = 0x1010101010101010;
+    static const U64 fFile = 0x2020202020202020;
+    static const U64 gFile = 0x4040404040404040;
+    static const U64 hFile = 0x8080808080808080;
+
+    int count = 0;
+    if(pawns[team] & aFile) count++;
+    if(pawns[team] & bFile) count++;
+    if(pawns[team] & cFile) count++;
+    if(pawns[team] & dFile) count++;
+    if(pawns[team] & eFile) count++;
+    if(pawns[team] & fFile) count++;
+    if(pawns[team] & gFile) count++;
+    if(pawns[team] & hFile) count++;
+
+    return getCardinality(pawns[team]) - count;
+}
+
 #define pieceSquareIndex(team, square) ((team) == BLACK ? (square) : 63 - (square))
 
 int Board::valuePosition(int team) {
@@ -1266,29 +1289,29 @@ int Board::valuePosition(int team) {
 
         U64 existsBishop = (1UL << i) & bishops[team];
         if (existsBishop) {
-            value += VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(team, i)]);
+            value += VALUE_BISHOP /*+ (Bishop::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
             countBishops[team]++;
         }
 
         U64 existsBishopEnemy = (1UL << i) & bishops[enemy];
         if (existsBishopEnemy) {
-            value -= VALUE_BISHOP + (Bishop::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+            value -= VALUE_BISHOP /*+ (Bishop::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
             countBishops[enemy]++;
         }
 
         int amountPawnsEnemy = getCardinality(pawns[enemy]);
         U64 existsRook = (1UL << i) & rooks[team];
-        if (existsRook) value += Rook::getRookValue(pawns, i, team) + (Rook::pieceSquareTable()[pieceSquareIndex(team, i)]);
+        if (existsRook) value += Rook::getRookValue(pawns, i, team) /*+ (Rook::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
 
         int amountPawns = getCardinality(pawns[team]);
         U64 existsRookEnemy = (1UL << i) & rooks[enemy];
-        if (existsRookEnemy) value -= Rook::getRookValue(pawns, i, enemy) + (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+        if (existsRookEnemy) value -= Rook::getRookValue(pawns, i, enemy) /*+ (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
 
         U64 existsQueen = (1UL << i) & queens[team];
-        if (existsQueen) value += VALUE_QUEEN + (Queen::pieceSquareTable()[pieceSquareIndex(team, i)]);
+        if (existsQueen) value += VALUE_QUEEN /*+ (Queen::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
 
         U64 existsQueenEnemy = (1UL << i) & queens[enemy];
-        if (existsQueenEnemy) value -= VALUE_QUEEN + (Queen::pieceSquareTable()[pieceSquareIndex(enemy, i)]);
+        if (existsQueenEnemy) value -= VALUE_QUEEN /*+ (Queen::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
 
         U64 existsKing = (1UL << i) & kings[team];
         if (existsKing) value += VALUE_KING + (King::pieceSquareTable(queens)[pieceSquareIndex(team, i)]);
@@ -1302,17 +1325,50 @@ int Board::valuePosition(int team) {
 
     // Bonus for bishop pair
     if(countBishops[team] == 2) {
-        value += 50;
+        value += 30;
     }
     if(countBishops[enemy] == 2) {
-        value -= 50;
+        value -= 30;
     }
 
     int passedPawns = getCardinality(Pawn::passedPawns(pawns, team));
     int enemyPassedPawns = getCardinality(Pawn::passedPawns(pawns, enemy));
 
-    value += passedPawns * 10;
-    value -= enemyPassedPawns * 10;
+    value += passedPawns * 8;
+    value -= enemyPassedPawns * 8;
+
+    // Center control
+    if(pieces[team] & (1UL << 26)) {
+        value += 8;
+    }
+    if(pieces[team] & (1UL << 27)) {
+        value += 8;
+    }
+    if(pieces[team] & (1UL << 35)) {
+        value += 8;
+    }
+    if(pieces[team] & (1UL << 36)) {
+        value += 8;
+    }
+
+    if(pieces[enemy] & (1UL << 26)) {
+        value -= 8;
+    }
+    if(pieces[enemy] & (1UL << 27)) {
+        value -= 8;
+    }
+    if(pieces[enemy] & (1UL << 35)) {
+        value -= 8;
+    }
+    if(pieces[enemy] & (1UL << 36)) {
+        value -= 8;
+    }
+
+    int doubledPawns = countDoublePawns(team);
+    value -= 20 * doubledPawns;
+
+    int enemyDoublePawns = countDoublePawns(enemy);
+    value += 20 * enemyDoublePawns;
 
     if(checkMate(ENEMY(team))) {
         value += 30000;
