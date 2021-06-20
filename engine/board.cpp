@@ -1060,14 +1060,27 @@ int Board::valueMove(const std::string &fen, const Move &move, int team) {
     }
 
     Move bestMove(0, 0, 0);
-    int value = board.alphaBeta(INT32_MIN / 100, INT32_MAX / 100,
+    int value = board.pvSearch(INT32_MIN / 100, INT32_MAX / 100,
                           SEARCH_DEPTH - 1, ENEMY(team), bestMove);
 
     return value;
 }
 
 Move Board::getBestMove(int team) {
-    std::vector<Move> allMoves = getAllMoves(team);
+    std::vector<Move> allMovesUnsorted = getAllMoves(team);
+    std::vector<Move> allMoves(allMovesUnsorted.size());
+
+    int beginIndex = 0;
+    unsigned long endIndex = allMovesUnsorted.size() - 1;
+    for(auto & move : allMovesUnsorted) {
+        if(move.isCapture() || move.isPromotion() || move.isCastle()) {
+            allMoves[beginIndex++] = move;
+        } else {
+            allMoves[endIndex--] = move;
+        }
+    }
+
+
     std::mutex moveMutex;
 
     std::string fen = getFENString();
@@ -1179,6 +1192,103 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
     }
 
     return alpha;
+}
+
+int Board::pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove) {
+    if(depthLeft == 0) {
+        return quiesce(alpha, beta, 0);
+    }
+    bool bSearchPv = true;
+
+    if(checkMate(actingTeam)) {
+        return -30000;
+    }
+
+    std::vector<Move> allMoves = getAllMoves(actingTeam);
+    for(const Move &move : allMoves) {
+        executeMove(move);
+
+        if (inCheck(ENEMY(actingTeam))) {
+            undoLastMove();
+            continue;
+        }
+
+        if(threeFoldRepetition || isStaleMate(actingTeam)) {
+            undoLastMove();
+            int evaluation = valuePosition(actingTeam);
+
+            if(evaluation >= 0) {
+                return -100;
+            } else if(evaluation < -500) {
+                return 200;
+            } else {
+                return 100;
+            }
+        }
+
+        int score;
+        if(bSearchPv) {
+            score = -pvSearch(-beta, -alpha, depthLeft - 1, team, bestMove);
+        } else {
+            score = -zwSearch(-alpha, depthLeft - 1);
+            if (score > alpha) {
+                score = -pvSearch(-beta, -alpha, depthLeft - 1, team, bestMove);
+            }
+        }
+        undoLastMove();
+        if(score >= beta) {
+            return beta;
+        } else if(score > alpha) {
+            alpha = score;
+            bSearchPv = false;
+            if(depthLeft == SEARCH_DEPTH) {
+                bestMove = move;
+            }
+        }
+
+    }
+
+    return alpha;
+}
+
+int Board::zwSearch(int beta, int depthLeft) {
+    if(depthLeft == 0) {
+        return quiesce(beta - 1, beta, 0);
+    }
+
+    if(checkMate(actingTeam)) {
+        return -30000;
+    }
+
+    std::vector<Move> allMoves = getAllMoves(actingTeam);
+    for(const Move &move : allMoves) {
+        executeMove(move);
+
+        if (inCheck(ENEMY(actingTeam))) {
+            undoLastMove();
+            continue;
+        }
+
+        if(threeFoldRepetition || isStaleMate(actingTeam)) {
+            undoLastMove();
+            int evaluation = valuePosition(actingTeam);
+
+            if(evaluation >= 0) {
+                return -100;
+            } else if(evaluation < -500) {
+                return 200;
+            } else {
+                return 100;
+            }
+        }
+        int score = -zwSearch(1-beta, depthLeft - 1);
+        undoLastMove();
+        if(score >= beta) {
+            return beta;
+        }
+    }
+
+    return beta - 1;
 }
 
 int Board::quiesce(int alpha, int beta, int depth) {

@@ -24,6 +24,9 @@ public:
         m_move = ((flags & 0xf) << 12) | ((from & 0x3f) << 6) | (to & 0x3f);
         captured = nullptr;
     }
+
+    explicit Move() = default;
+
     friend std::ostream& operator<<(std::ostream& os, const Move& move) {
         os << toNotation(move.getFrom()) << " " << toNotation(move.getTo())
             << " " << move.getFlags() << std::endl;

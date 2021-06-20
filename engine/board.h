@@ -37,6 +37,9 @@ private:
     int getTeam(unsigned int square);
     U64 getTargetMap(int team, bool includeKing=true, bool countBlocked=false);
     int alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove);
+    int pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove);
+    int zwSearch(int beta, int depthLeft);
+
     int quiesce(int alpha, int beta, int depth);
 public:
 
