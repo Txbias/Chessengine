@@ -19,6 +19,7 @@
 
 #define SEARCH_DEPTH 3
 #define AMOUNT_THREADS 6
+#define PENALTY_BAD_DRAW -5000
 
 class Board {
 
@@ -61,13 +62,13 @@ public:
     bool rookMoved[2][2];
     bool threeFoldRepetition = false;
 
-    static const int VALUE_MOBILITY = 10;
-    static const int VALUE_PAWN = 100;
-    static const int VALUE_KNIGHT = 320;
-    static const int VALUE_BISHOP = 330;
-    static const int VALUE_ROOK = 500;
-    static const int VALUE_QUEEN = 900;
-    static const int VALUE_KING = 20000;
+    int VALUE_MOBILITY = 10;
+    int VALUE_PAWN = 100;
+    int VALUE_KNIGHT = 320;
+    int VALUE_BISHOP = 330;
+    int VALUE_ROOK = 500;
+    int VALUE_QUEEN = 900;
+    int VALUE_KING = 20000;
 
     int amountFullMoves = 1;
     int actingTeam = 0;

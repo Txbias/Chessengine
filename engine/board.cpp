@@ -839,14 +839,17 @@ int Board::getTeam(unsigned int square) {
 U64 Board::getTargetMap(int team, bool includeKing, bool countBlocked) {
     U64 targets = 0UL;
     int enemyTeam = ENEMY(team);
+    U64 enemyPieces = pieces[enemyTeam];
+    enemyPieces &= ~kings[enemyTeam];
+
     targets |= (Pawn::getAttackTargets(pawns[team], team) & pieces[enemyTeam]);
     targets |= Rook::getTargets(rooks[team], pieces[team],
-                                pieces[enemyTeam], countBlocked);
+                                enemyPieces, countBlocked);
     targets |= Knight::getTargets(knights[team], pieces[team]);
     targets |= Bishop::getTargets(bishops[team], pieces[team],
-                                  pieces[enemyTeam], countBlocked);
+                                  enemyPieces, countBlocked);
     targets |= Queen::getTargets(queens[team], pieces[team],
-                                 pieces[enemyTeam], countBlocked);
+                                 enemyPieces, countBlocked);
     if(includeKing) {
         targets |= King::getTargets(kings[team], pieces[team]);
     }
@@ -861,7 +864,8 @@ bool Board::inCheck(int team) {
 
 bool Board::checkMate(int team) {
     int enemyTeam = ENEMY(team);
-    U64 enemyTargets = getTargetMap(enemyTeam, true);
+    U64 enemyTargets = getTargetMap(enemyTeam, true, true);
+    enemyTargets |= Pawn::getAttackTargets(pawns[enemyTeam], enemyTeam) & pieces[enemyTeam];
 
     if(!(enemyTargets & kings[team])) {
         // Not even check
@@ -1045,23 +1049,32 @@ int Board::valueMove(const std::string &fen, const Move &move, int team) {
     Board board(fen);
     board.executeMove(move);
 
-    if(board.inCheck(team)) {
-        return 30000;
+    if(board.inCheck(team) || board.checkMate(team)) {
+        return INT32_MIN;
+    }
+
+    if(board.checkMate(ENEMY(team))) {
+        return INT32_MAX;
     }
 
     if(board.isStaleMate(team) || board.isStaleMate(ENEMY(team))) {
         int value = board.valuePosition(team);
 
         if(value > 0) {
-            return 5000;
+            return -5000;
         } else {
-            return -500;
+            return 500;
         }
     }
 
     Move bestMove(0, 0, 0);
-    int value = board.pvSearch(INT32_MIN / 100, INT32_MAX / 100,
+    int value = -board.alphaBeta(INT32_MIN / 100, INT32_MAX / 100,
                           SEARCH_DEPTH - 1, ENEMY(team), bestMove);
+
+    if(value > 30000) {
+        // Quick fix
+        value *= -1;
+    }
 
     return value;
 }
@@ -1086,7 +1099,7 @@ Move Board::getBestMove(int team) {
     std::string fen = getFENString();
 
     Move bestMove(0, 0, 0);
-    int bestMoveValue;
+    int bestMoveValue = INT32_MIN;
     std::mutex bestMoveMutex;
 
     std::vector<std::future<void>> futures(allMoves.size());
@@ -1100,7 +1113,7 @@ Move Board::getBestMove(int team) {
             allMoves.erase(allMoves.begin());
             moveLock.unlock();
 
-            int value = -valueMove(fen, move, team);
+            int value = valueMove(fen, move, team);
             std::lock_guard<std::mutex> bestMoveLock(bestMoveMutex);
             if (bestMove.getFrom() == 0 && bestMove.getTo() == 0 && value != -30000) {
                 bestMove = move;
@@ -1148,10 +1161,22 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
         return quiesce(alpha, beta, 0);
     }
 
+    if(checkMate(actingTeam)) {
+        return INT32_MIN;
+    }
+
     std::vector<Move> allMoves = getAllMoves(actingTeam);
 
-    if(checkMate(actingTeam)) {
-        return -30000;
+    if(allMoves.empty()) {
+        int evaluation = valuePosition(actingTeam);
+
+        if(evaluation >= 0) {
+            return PENALTY_BAD_DRAW;
+        } else if(evaluation < -500) {
+            return 200;
+        } else {
+            return 100;
+        }
     }
 
     for(int i = 0; i < allMoves.size(); i++) {
@@ -1168,7 +1193,7 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
             int evaluation = valuePosition(actingTeam);
 
             if(evaluation >= 0) {
-                return -100;
+                return PENALTY_BAD_DRAW;
             } else if(evaluation < -500) {
                 return 200;
             } else {
@@ -1204,7 +1229,23 @@ int Board::pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove
         return -30000;
     }
 
+    if(checkMate(ENEMY(actingTeam))) {
+        return 30000;
+    }
+
     std::vector<Move> allMoves = getAllMoves(actingTeam);
+    if(allMoves.empty()) {
+        int evaluation = valuePosition(actingTeam);
+
+        if(evaluation >= 0) {
+            return -100;
+        } else if(evaluation < -500) {
+            return 200;
+        } else {
+            return 100;
+        }
+    }
+
     for(const Move &move : allMoves) {
         executeMove(move);
 
@@ -1260,7 +1301,23 @@ int Board::zwSearch(int beta, int depthLeft) {
         return -30000;
     }
 
+    if(checkMate(ENEMY(actingTeam))) {
+        return 30000;
+    }
+
     std::vector<Move> allMoves = getAllMoves(actingTeam);
+    if(allMoves.empty()) {
+        int evaluation = valuePosition(actingTeam);
+
+        if(evaluation >= 0) {
+            return -100;
+        } else if(evaluation < -500) {
+            return 200;
+        } else {
+            return 100;
+        }
+    }
+
     for(const Move &move : allMoves) {
         executeMove(move);
 
@@ -1296,6 +1353,10 @@ int Board::quiesce(int alpha, int beta, int depth) {
         return -30000;
     }
 
+    if(checkMate(ENEMY(actingTeam))) {
+        return INT32_MAX;
+    }
+
     int standPat = valuePosition(actingTeam);
 
     if(standPat >= beta) {
@@ -1305,6 +1366,21 @@ int Board::quiesce(int alpha, int beta, int depth) {
     }
 
     std::vector<Move> allMoves = getAllMoves(actingTeam);
+
+    if(allMoves.empty()) {
+        if(!isStaleMate(0) && !isStaleMate(1)) {
+            return valuePosition(actingTeam);
+        } else {
+            int value = valuePosition(actingTeam);
+            if(value >= 0) {
+                return PENALTY_BAD_DRAW;
+            } else if(value < -500) {
+                return 200;
+            } else {
+                return 100;
+            }
+        }
+    }
 
     for(Move move : allMoves) {
         if(!move.isCapture()) {
@@ -1322,7 +1398,7 @@ int Board::quiesce(int alpha, int beta, int depth) {
             undoLastMove();
             int evaluation = valuePosition(actingTeam);
             if(evaluation >= 0) {
-                return -100;
+                return PENALTY_BAD_DRAW;
             } else if(evaluation < -500) {
                 return 200;
             } else {
@@ -1411,11 +1487,11 @@ int Board::valuePosition(int team) {
 
         int amountPawnsEnemy = getCardinality(pawns[enemy]);
         U64 existsRook = (1UL << i) & rooks[team];
-        if (existsRook) value += Rook::getRookValue(pawns, i, team) /*+ (Rook::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
+        if (existsRook) value += Rook::getRookValue(pawns, i, team, VALUE_ROOK) /*+ (Rook::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
 
         int amountPawns = getCardinality(pawns[team]);
         U64 existsRookEnemy = (1UL << i) & rooks[enemy];
-        if (existsRookEnemy) value -= Rook::getRookValue(pawns, i, enemy) /*+ (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
+        if (existsRookEnemy) value -= Rook::getRookValue(pawns, i, enemy, VALUE_ROOK) /*+ (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
 
         U64 existsQueen = (1UL << i) & queens[team];
         if (existsQueen) value += VALUE_QUEEN /*+ (Queen::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
@@ -1424,10 +1500,10 @@ int Board::valuePosition(int team) {
         if (existsQueenEnemy) value -= VALUE_QUEEN /*+ (Queen::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
 
         U64 existsKing = (1UL << i) & kings[team];
-        if (existsKing) value += VALUE_KING + (King::pieceSquareTable(queens)[pieceSquareIndex(team, i)]);
+        if (existsKing) value += VALUE_KING /*+ (King::pieceSquareTable(queens)[pieceSquareIndex(team, i)])*/;
 
         U64 existsKingEnemy = (1UL << i) & kings[enemy];
-        if (existsKingEnemy) value -= VALUE_KING + (King::pieceSquareTable(queens)[pieceSquareIndex(enemy, i)]);
+        if (existsKingEnemy) value -= VALUE_KING /*+ (King::pieceSquareTable(queens)[pieceSquareIndex(enemy, i)])*/;
     }
 
     // Mobility score

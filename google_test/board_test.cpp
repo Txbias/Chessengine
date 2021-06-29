@@ -39,6 +39,15 @@ TEST(BoardTest, MoveExecution2) {
     }
 }
 
+TEST(BoardTest, MateInOne) {
+    Board board("5K2/p2r4/2r5/k5p1/8/8/8/3q4 b - - 12 90");
+
+    Move move = board.getBestMove(1);
+
+    std::cout << Move::toNotation(move) << std::endl;
+    ASSERT_EQ(Move::toNotation(move), "c6c8");
+}
+
 void testMoveExecution(Board &board, int depth) {
 
     if(depth == 0) {
@@ -114,6 +123,19 @@ TEST(BoardTest, Crash3) {
     Move move = board.getBestMove(1);
 
     ASSERT_FALSE(move.getFrom() == 0 && move.getTo() == 0);
+}
+
+TEST(BoardTest, Crash4) {
+    Board board("r1bqkb1r/ppp1pppp/2n2P2/8/3p4/2N2N2/PPPP1PPP/R1BQKB1R b KQkq - 0 5");
+
+    board.getBestMove(1);
+}
+
+TEST(BoardTest, MovesKingInCheck) {
+    Board board("2Q2b1r/4p1p1/pk6/1p5p/1Pp4P/4PB2/P1P3P1/2K5 b - - 0 30");
+
+    Move move = board.getBestMove(1);
+    ASSERT_FALSE(Move::toNotation(move) == "b6c7");
 }
 
 TEST(BoardTest, CountMovesStartingPosition) {
@@ -306,4 +328,17 @@ TEST(CheckMate, mate) {
     Board board("rnbqkbnr/ppppp2p/8/5ppQ/8/3PP3/PPP2PPP/RNB1KBNR b KQkq - 1 3");
 
     ASSERT_TRUE(board.checkMate(1));
+}
+
+TEST(CheckMate, mate2) {
+    Board board("5K2/p2r4/2r5/k5p1/8/8/8/3q4 w - - 12 90");
+    board.executeMove(Move::fromNotation("c6c8"));
+
+    ASSERT_TRUE(board.checkMate(0));
+}
+
+TEST(CheckMate, mate3) {
+    Board board("7r/p4k1p/2pb3p/3nn3/1r1K2p1/8/7q/8 w - - 4 31");
+
+    ASSERT_TRUE(board.checkMate(0));
 }
