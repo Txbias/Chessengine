@@ -17,8 +17,6 @@
 #include "queen.h"
 #include "king.h"
 
-#define SEARCH_DEPTH 3
-#define AMOUNT_THREADS 6
 #define PENALTY_BAD_DRAW -5000
 
 class Board {
@@ -27,6 +25,8 @@ class Board {
 
 private:
     unsigned long occupied = 0;
+
+    int SEARCH_DEPTH = 3;
 
     static const int WHITE = 0;
     static const int BLACK = 1;
@@ -99,5 +99,13 @@ public:
 
     inline unsigned long getOccupied() const {
         return occupied;
+    }
+
+    inline void setSearchDepth(int depth) {
+        SEARCH_DEPTH = depth;
+    }
+
+    inline int getSearchDepth() const {
+        return SEARCH_DEPTH;
     }
 };

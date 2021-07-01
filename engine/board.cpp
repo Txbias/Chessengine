@@ -1069,12 +1069,8 @@ int Board::valueMove(const std::string &fen, const Move &move, int team) {
 
     Move bestMove(0, 0, 0);
     int value = -board.alphaBeta(INT32_MIN / 100, INT32_MAX / 100,
-                          SEARCH_DEPTH - 1, ENEMY(team), bestMove);
+                          board.getSearchDepth() - 1, ENEMY(team), bestMove);
 
-    if(value > 30000) {
-        // Quick fix
-        value *= -1;
-    }
 
     return value;
 }
