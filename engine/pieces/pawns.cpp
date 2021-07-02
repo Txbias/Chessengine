@@ -213,13 +213,7 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64
 
     U64 enPassant = whitePawnAnyAttack(pawns) & enPassantTarget;
     if(enPassant) {
-        unsigned int to;
-        for(int i = 0; i < 64; i++) {
-            if(enPassantTarget & (1UL << i)) {
-                to = i;
-                break;
-            }
-        }
+        unsigned int to = bitScanForward(enPassant);
         unsigned int from;
         U64 fromBitboard = pawns & blackPawnsAnyAttack(enPassantTarget);
         for(int i = 0; i < 64; i++) {
