@@ -342,3 +342,30 @@ TEST(CheckMate, mate3) {
 
     ASSERT_TRUE(board.checkMate(0));
 }
+
+TEST(HashingTest, shouldNotChange) {
+    Board board;
+
+    ASSERT_EQ(board.getPositionHash(), board.getPositionHash());
+}
+
+TEST(HashingTest, shouldChange) {
+    Board board;
+
+    unsigned long hashBefore = board.getPositionHash();
+
+    board.executeUserMove(Move::fromNotation("e2e4"));
+
+    ASSERT_NE(hashBefore, board.getPositionHash());
+}
+
+TEST(HashingTest, undoMove) {
+    Board board;
+
+    unsigned long hashBefore = board.getPositionHash();
+
+    board.executeUserMove(Move::fromNotation("e2e4"));
+    board.undoLastMove();
+
+    ASSERT_EQ(hashBefore, board.getPositionHash());
+}

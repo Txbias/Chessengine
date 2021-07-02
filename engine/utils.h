@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <random>
 #include "Move.h"
 
 #define FLAG_QUIET 0
@@ -49,6 +50,7 @@ U64 bFrontSpans(U64 bitboard);
 void setBit(unsigned long &bitboard, unsigned int pos);
 unsigned long setRow(unsigned long bitboard, unsigned int row);
 unsigned long setFile(unsigned long bitboard, unsigned long file);
+unsigned long randomU64Number();
 unsigned int getFlag(unsigned int target, U64 enemyPieces);
 
 std::vector<int> getSetBits(U64 bitboard);

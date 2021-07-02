@@ -13,6 +13,12 @@ int bitScanForward(U64 bitboard) {
     return getCardinality((bitboard & -bitboard) - 1);
 }
 
+unsigned long randomU64Number() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    return gen();
+}
+
 void setBit(unsigned long &bitboard, unsigned int pos) {
     bitboard |= (1UL << pos);
 }

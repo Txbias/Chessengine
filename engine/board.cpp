@@ -3,7 +3,44 @@
 #define MIN(x, y) (x < y ? x : y)
 #define MAX(x, y) (x > y ? x : y)
 
+bool initialized = false;
+
+// random piece keys [piece][square]
+U64 pieceKeys[12][64];
+
+// random enPassant keys
+U64 enPassantKeys[64];
+
+// random castling keys
+U64 castlingKeys[16];
+
+// random side key
+U64 sideKey;
+
+
+void initializeHashKeys() {
+    if(initialized) {
+        return;
+    }
+    initialized = true;
+    for(int square = 0; square < 64; square++) {
+        for(int i = 0; i < 12; i++) {
+            pieceKeys[i][square] = randomU64Number();
+        }
+
+        enPassantKeys[square] = randomU64Number();
+    }
+
+    for(int i = 0; i < 16; i++) {
+        castlingKeys[i] = randomU64Number();
+    }
+
+    sideKey = randomU64Number();
+}
+
 Board::Board() {
+
+    initializeHashKeys();
 
     pieces[BLACK] = 0UL;
     pieces[WHITE] = 0UL;
@@ -19,11 +56,13 @@ Board::Board() {
 
     initializePieces();
 
-    Position position = getCurrentPosition();
-    positions.insert(std::make_pair(position, 1));
+    U64 currPos = getPositionHash();
+    positions.insert(std::make_pair(currPos, 1));
 }
 
 Board::Board(const std::string& fen) {
+
+    initializeHashKeys();
 
     occupied = 0UL;
     kingMoved[0] = true;
@@ -134,6 +173,8 @@ Board::Board(const std::string& fen) {
 
     fenPosition++;
 
+    if(fen.at(fenPosition) == ' ') fenPosition++;
+
     if(fen.at(fenPosition) != '-') {
         // En passant target
         int file = fen.at(fenPosition) - 97;
@@ -142,6 +183,9 @@ Board::Board(const std::string& fen) {
         enPassantSquare = row * 8 + file;
         enPassantTarget = 1UL << enPassantSquare;
         fenPosition++;
+    } else {
+        enPassantSquare = 0;
+        enPassantTarget = 0;
     }
 
     fenPosition += 2;
@@ -154,8 +198,9 @@ Board::Board(const std::string& fen) {
 
     amountFullMoves = std::stoi(fen.substr(fenPosition));
 
-    Position position = getCurrentPosition();
-    positions.insert(std::make_pair(position, 1));
+    U64 posHash = getPositionHash();
+    positions.insert(std::make_pair(posHash, 1));
+
 }
 
 void Board::initializePieces() {
@@ -405,7 +450,8 @@ void Board::executeMove(Move move) {
                 targetSquare = 1UL << 61;
             }
 
-        } else if(move.getFlags() == FLAG_QUEEN_CASTLE) {
+        } else {
+            // Queen castle
             if(team == WHITE) {
                 originSquare = ~1UL;
             } else {
@@ -417,8 +463,6 @@ void Board::executeMove(Move move) {
             } else {
                 targetSquare = 1UL << 59;
             }
-        } else {
-            std::cout << "error execute" << std::endl;
         }
 
         rooks[team] &= originSquare;
@@ -450,24 +494,82 @@ void Board::executeMove(Move move) {
 
     moves.push(move);
 
-    // Save current position
-    Position position = getCurrentPosition();
-
-    auto it = positions.find(position);
-    if(it == positions.end()) {
-        // New position
-        positions.insert(std::make_pair(position, 1));
-    } else {
-        it->second++;
-        if(it->second == 3) {
-            threeFoldRepetition = true;
-        }
-    }
-
     actingTeam = ENEMY(team);
     if(team == BLACK) {
         amountFullMoves++;
     }
+
+    // Save current position
+    U64 currPosHash = getPositionHash();
+    auto it2 = positions.find(currPosHash);
+    if(it2 == positions.end()) {
+        positions[currPosHash] = 1;
+    } else {
+        positions[currPosHash]++;
+        if(positions[currPosHash] == 3) {
+            threeFoldRepetition = true;
+        }
+    }
+}
+
+U64 Board::getPositionHash() {
+    U64 key = 0UL;
+
+    U64* allPieces[12] {
+            &pawns[0], &pawns[1],
+            &knights[0], &knights[1],
+            &bishops[0], &bishops[1],
+            &rooks[0], &rooks[1],
+            &queens[0], &queens[1],
+            &kings[0], &kings[1]
+    };
+
+    for(int i = 0; i < 12; i++) {
+        U64 bitboard = *allPieces[i];
+        U64 bitboardCopy = bitboard;
+
+        if(bitboardCopy) {
+            do {
+                int square = bitScanForward(bitboardCopy);
+
+                // hash piece
+                key ^= pieceKeys[i][square];
+
+            } while (bitboardCopy &= bitboardCopy - 1);
+            if (*allPieces[i] == bitboardCopy) {
+                std::cout << "eraw" << std::endl;
+            }
+        }
+    }
+    if(enPassantTarget) {
+        key ^= enPassantKeys[enPassantSquare];
+    }
+
+    unsigned int castlingRights = 0;
+
+    if(!kingMoved[0]) {
+        if(rookMoved[0][0]) {
+            castlingRights |= 1;
+        }
+        if(rookMoved[0][1]) {
+            castlingRights |= 1 << 1;
+        }
+    }
+    if(!kingMoved[1]) {
+        if(rookMoved[1][0]) {
+            castlingRights |= 1 << 2;
+        }
+        if(rookMoved[1][1]) {
+            castlingRights |= 1 << 3;
+        }
+    }
+    key ^= castlingKeys[castlingRights];
+
+    if(actingTeam == BLACK) {
+        key ^= sideKey;
+    }
+
+    return key;
 }
 
 void Board::undoLastMove() {
@@ -476,20 +578,16 @@ void Board::undoLastMove() {
         return;
     }
 
-    Position positionBeforeUnDone = getCurrentPosition();
-    auto it = positions.find(positionBeforeUnDone);
+    U64 currPosHash = getPositionHash();
+    auto it2 = positions.find(currPosHash);
 
-    if(it == positions.end()) {
-        std::cout << "Unknown position" << std::endl;
-    }
-
-    if(it->second == 1) {
-        positions.erase(it);
+    if(it2->second == 1) {
+        positions.erase(it2);
     } else {
-        if(it->second == 3) {
+        if(it2->second == 3) {
             threeFoldRepetition = false;
         }
-        it->second--;
+        positions[currPosHash]--;
     }
 
     Move move = moves.top();
@@ -550,7 +648,7 @@ void Board::undoLastMove() {
                 targetSquare = 1UL << 63;
             }
 
-        } else if(move.getFlags() == FLAG_QUEEN_CASTLE) {
+        } else {
             if(team == WHITE) {
                 originSquare = ~(1UL << 3);
             } else {
@@ -562,8 +660,6 @@ void Board::undoLastMove() {
             } else {
                 targetSquare = 1UL << 56;
             }
-        } else {
-            std::cout << "Error undo" << std::endl;
         }
 
         rooks[team] &= originSquare;
@@ -597,36 +693,15 @@ void Board::undoLastMove() {
     }
 
     enPassantSquare = move.getEPSquareBefore();
-    enPassantTarget = 1UL << move.getEPSquareBefore();
+    if(enPassantSquare != 0) {
+        enPassantTarget = 1UL << move.getEPSquareBefore();
+    } else {
+        enPassantTarget = 0UL;
+    }
 
     if(team == BLACK) {
         amountFullMoves--;
     }
-}
-
-Position Board::getCurrentPosition() {
-
-    U64 currPiecesPosition[2][6];
-    bool canCastle[2][2];
-
-    for(int i = 0; i < 2; i++) {
-        currPiecesPosition[i][0] = pawns[i];
-        currPiecesPosition[i][1] = knights[i];
-        currPiecesPosition[i][2] = bishops[i];
-        currPiecesPosition[i][3] = rooks[i];
-        currPiecesPosition[i][4] = queens[i];
-        currPiecesPosition[i][5] = kings[i];
-
-        if(kingMoved[i]) {
-            canCastle[i][0] = false;
-            canCastle[i][1] = false;
-        } else {
-            canCastle[i][0] = !rookMoved[i][0];
-            canCastle[i][1] = !rookMoved[i][1];
-        }
-    }
-
-    return Position(actingTeam, enPassantSquare, canCastle, currPiecesPosition);
 }
 
 void Board::printBoard() {
@@ -1045,8 +1120,8 @@ std::vector<Move> Board::getAllMoves(int team) {
     return allMoves;
 }
 
-int Board::valueMove(const std::string &fen, const Move &move, int team) {
-    Board board(fen);
+int Board::valueMove(Board boardCopy, const Move &move, int team) {
+    Board board = std::move(boardCopy);
     board.executeMove(move);
 
     if(board.inCheck(team) || board.checkMate(team)) {
@@ -1076,19 +1151,7 @@ int Board::valueMove(const std::string &fen, const Move &move, int team) {
 }
 
 Move Board::getBestMove(int team) {
-    std::vector<Move> allMovesUnsorted = getAllMoves(team);
-    std::vector<Move> allMoves(allMovesUnsorted.size());
-
-    int beginIndex = 0;
-    unsigned long endIndex = allMovesUnsorted.size() - 1;
-    for(auto & move : allMovesUnsorted) {
-        if(move.isCapture() || move.isPromotion() || move.isCastle()) {
-            allMoves[beginIndex++] = move;
-        } else {
-            allMoves[endIndex--] = move;
-        }
-    }
-
+    std::vector<Move> allMoves = getAllMoves(team);
 
     std::mutex moveMutex;
 

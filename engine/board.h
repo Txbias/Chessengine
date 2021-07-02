@@ -4,11 +4,9 @@
 #include <stack>
 #include <cctype>
 #include <map>
-#include <thread>
 #include <mutex>
 
 #include "Move.h"
-#include "position.h"
 #include "thread_pool.h"
 #include "pawns.h"
 #include "knight.h"
@@ -19,6 +17,8 @@
 
 #define PENALTY_BAD_DRAW -5000
 
+void initializeHashKeys();
+
 class Board {
 
     typedef unsigned long U64;
@@ -26,7 +26,7 @@ class Board {
 private:
     unsigned long occupied = 0;
 
-    int SEARCH_DEPTH = 3;
+    int SEARCH_DEPTH = 4;
 
     static const int WHITE = 0;
     static const int BLACK = 1;
@@ -48,7 +48,7 @@ public:
     Board(const std::string& fen);
 
     std::stack<Move> moves;
-    std::map<Position, int> positions;
+    std::map<U64, int> positions;
 
     unsigned long pieces[2];
     unsigned long pawns[2];
@@ -76,9 +76,10 @@ public:
     U64 enPassantTarget = 0UL;
     unsigned int enPassantSquare = 0;
 
+    U64 getPositionHash();
+
     std::vector<Move> getAllMoves(int team);
     Move getBestMove(int team);
-    Position getCurrentPosition();
 
     bool inCheck(int team);
     bool checkMate(int team);
@@ -95,7 +96,7 @@ public:
     int countMoves(int team);
     int countDoublePawns(int team);
 
-    static int valueMove(const std::string &fen, const Move &move, int team);
+    static int valueMove(Board boardCopy, const Move &move, int team);
 
     inline unsigned long getOccupied() const {
         return occupied;
