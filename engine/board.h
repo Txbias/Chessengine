@@ -26,7 +26,7 @@ class Board {
 private:
     unsigned long occupied = 0;
 
-    int SEARCH_DEPTH = 4;
+    int SEARCH_DEPTH = 3;
 
     static const int WHITE = 0;
     static const int BLACK = 1;
