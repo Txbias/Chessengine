@@ -4,6 +4,7 @@
 #define MAX(x, y) (x > y ? x : y)
 
 bool initialized = false;
+int SEARCH_DEPTH = 3;
 
 // random piece keys [piece][square]
 U64 pieceKeys[12][64];
@@ -17,6 +18,9 @@ U64 castlingKeys[16];
 // random side key
 U64 sideKey;
 
+void setSearchDepth(int depth) {
+    SEARCH_DEPTH = depth;
+}
 
 void initializeHashKeys() {
     if(initialized) {
@@ -1144,7 +1148,7 @@ int Board::valueMove(Board boardCopy, const Move &move, int team) {
 
     Move bestMove(0, 0, 0);
     int value = -board.alphaBeta(INT32_MIN / 100, INT32_MAX / 100,
-                          board.getSearchDepth() - 1, ENEMY(team), bestMove);
+                          SEARCH_DEPTH - 1, ENEMY(team), bestMove);
 
 
     return value;
@@ -1166,7 +1170,7 @@ Move Board::getBestMove(int team) {
     const unsigned long size = allMoves.size();
     int index = 0;
     for(int i = 0; i < size; i++) {
-        futures[i] = ThreadPool::getInstance().enqueue([&] {
+        futures[i] = ThreadPool::getInstance().enqueue([&, this] {
             std::unique_lock<std::mutex> moveLock(moveMutex);
             Move move = allMoves[0];
             allMoves.erase(allMoves.begin());
