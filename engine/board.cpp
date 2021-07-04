@@ -1,5 +1,7 @@
 #include "board.h"
 
+#include "transposition_table.h"
+
 #define MIN(x, y) (x < y ? x : y)
 #define MAX(x, y) (x > y ? x : y)
 
@@ -1194,6 +1196,8 @@ Move Board::getBestMove(int team) {
         future.wait();
     }
 
+    TranspositionTable::getInstance().updateAfterSearch();
+
     return bestMove;
 }
 
@@ -1246,6 +1250,22 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
         executeMove(allMoves[i]);
 
+        U64 positionHash = getPositionHash();
+        Entry entry = TranspositionTable::getInstance().getEntry(positionHash);
+        if(entry.hash != 0) {
+            undoLastMove();
+            if(entry.score >= beta) {
+                return beta;
+            }
+            if(entry.score > alpha) {
+                alpha = entry.score;
+                if(actingTeam == team && depthLeft == SEARCH_DEPTH) {
+                    bestMove = allMoves[i];
+                }
+            }
+            continue;
+        }
+
         if (inCheck(ENEMY(actingTeam))) {
             undoLastMove();
             continue;
@@ -1267,6 +1287,10 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
         int score = -alphaBeta(-beta, -alpha, depthLeft - 1, team, bestMove);
         undoLastMove();
+
+        // Save to transposition table
+        entry = Entry(positionHash, SEARCH_DEPTH - depthLeft, score);
+        TranspositionTable::getInstance().addEntry(entry);
 
         if(score >= beta) {
             return beta;
@@ -1452,6 +1476,19 @@ int Board::quiesce(int alpha, int beta, int depth) {
 
         executeMove(move);
 
+        U64 positionHash = getPositionHash();
+        Entry entry = TranspositionTable::getInstance().getEntry(positionHash);
+        if(entry.hash != 0) {
+            undoLastMove();
+            if(entry.score >= beta) {
+                return beta;
+            }
+            if(entry.score > alpha) {
+                alpha = entry.score;
+            }
+            continue;
+        }
+
         if(inCheck(ENEMY(actingTeam))) {
             undoLastMove();
             continue;
@@ -1471,6 +1508,10 @@ int Board::quiesce(int alpha, int beta, int depth) {
 
         int score = -quiesce(-beta, -alpha, depth + 1);
         undoLastMove();
+
+        // Save to transposition table
+        entry = Entry(positionHash, SEARCH_DEPTH + depth, score);
+        TranspositionTable::getInstance().addEntry(entry);
 
         if(score >= beta) {
             return beta;
