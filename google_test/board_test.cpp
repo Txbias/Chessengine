@@ -201,6 +201,14 @@ TEST(BoardTest, NotStaleMate) {
     ASSERT_FALSE(board.isStaleMate(0));
 }
 
+TEST(BoardTest, NoStaleMate2) {
+    Board board("8/2p1kp2/8/1r6/8/3p1p2/Kp3P2/8 w - - 8 65");
+    board.executeUserMove(Move::fromNotation("b2b1"));
+
+    ASSERT_FALSE(board.isStaleMate(0));
+    ASSERT_FALSE(board.isStaleMate(1));
+}
+
 TEST(BoardTest, AvoidStalemate) {
     Board board("7r/p2n1k1p/2pb3p/1r1n4/2K3p1/8/7q/8 b - - 1 29");
 
@@ -225,6 +233,14 @@ TEST(BoardTest, InCheck) {
     Move move = board.getBestMove(1);
 
     ASSERT_FALSE(Move::toNotation(move) == "e8e1");
+}
+
+TEST(BoardTest, noPromotion) {
+    Board board("8/2p1kp2/8/1r6/8/3p1p2/Kp3P2/8 w - - 4 63");
+
+    Move move = board.getBestMove(1);
+
+    ASSERT_EQ(Move::toNotation(move), "b2b1q");
 }
 
 TEST(FenTest, StartingPosition) {

@@ -1271,21 +1271,20 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
             continue;
         }
 
+        int score;
         if(threeFoldRepetition || isStaleMate(actingTeam)) {
-            undoLastMove();
             int evaluation = valuePosition(actingTeam);
 
             if(evaluation >= 0) {
-                return PENALTY_BAD_DRAW;
+                score = PENALTY_BAD_DRAW;
             } else if(evaluation < -500) {
-                return 200;
+                score = 200;
             } else {
-                return 100;
+                score = 100;
             }
+        } else {
+            score = -alphaBeta(-beta, -alpha, depthLeft - 1, team, bestMove);
         }
-
-
-        int score = -alphaBeta(-beta, -alpha, depthLeft - 1, team, bestMove);
         undoLastMove();
 
         // Save to transposition table
@@ -1627,31 +1626,40 @@ int Board::valuePosition(int team) {
     value += passedPawns * 8;
     value -= enemyPassedPawns * 8;
 
-    // Center control
-    if(pieces[team] & (1UL << 26)) {
-        value += 8;
-    }
-    if(pieces[team] & (1UL << 27)) {
-        value += 8;
-    }
-    if(pieces[team] & (1UL << 35)) {
-        value += 8;
-    }
-    if(pieces[team] & (1UL << 36)) {
-        value += 8;
-    }
+    if(getCardinality(occupied) <= 12) {
+        // Center control
+        U64 targetMap = getTargetMap(team, false);
+        U64 enemyTargetMap = getTargetMap(enemy, false);
 
-    if(pieces[enemy] & (1UL << 26)) {
-        value -= 8;
-    }
-    if(pieces[enemy] & (1UL << 27)) {
-        value -= 8;
-    }
-    if(pieces[enemy] & (1UL << 35)) {
-        value -= 8;
-    }
-    if(pieces[enemy] & (1UL << 36)) {
-        value -= 8;
+        targetMap |= pieces[team];
+        enemyTargetMap |= pieces[enemy];
+
+
+        if (targetMap & (1UL << 26)) {
+            value += 6;
+        }
+        if (targetMap & (1UL << 27)) {
+            value += 6;
+        }
+        if (targetMap & (1UL << 35)) {
+            value += 6;
+        }
+        if (targetMap & (1UL << 36)) {
+            value += 6;
+        }
+
+        if (enemyTargetMap & (1UL << 26)) {
+            value -= 6;
+        }
+        if (enemyTargetMap & (1UL << 27)) {
+            value -= 6;
+        }
+        if (enemyTargetMap & (1UL << 35)) {
+            value -= 6;
+        }
+        if (enemyTargetMap & (1UL << 36)) {
+            value -= 6;
+        }
     }
 
     int doubledPawns = countDoublePawns(team);
