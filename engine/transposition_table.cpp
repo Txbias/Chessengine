@@ -6,11 +6,6 @@ TranspositionTable::TranspositionTable() {
     }
 }
 
-TranspositionTable & TranspositionTable::getInstance() {
-    static auto *transpositionTable = new TranspositionTable;
-    return *transpositionTable;
-}
-
 void TranspositionTable::addEntry(Entry entry) {
     unsigned long index = entry.hash % TABLE_SIZE;
 

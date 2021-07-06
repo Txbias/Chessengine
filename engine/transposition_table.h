@@ -22,23 +22,13 @@ struct Entry {
 
 class TranspositionTable {
 public:
-
-    static TranspositionTable & getInstance();
+    TranspositionTable();
 
     void addEntry(Entry entry);
     void updateAfterSearch();
 
     Entry getEntry(U64 hash);
-
-
-    TranspositionTable(const TranspositionTable&) = delete;
-    TranspositionTable& operator=(const TranspositionTable&) = delete;
-    TranspositionTable(TranspositionTable&&) = delete;
-    TranspositionTable& operator=(TranspositionTable&&) = delete;
-
 private:
-    TranspositionTable();
-
     std::mutex tableMutex;
 
     static const int TABLE_SIZE = 100000;
