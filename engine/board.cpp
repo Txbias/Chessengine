@@ -1324,7 +1324,7 @@ int Board::pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove
         int evaluation = valuePosition(actingTeam);
 
         if(evaluation >= 0) {
-            return -100;
+            return PENALTY_BAD_DRAW;
         } else if(evaluation < -500) {
             return 200;
         } else {
@@ -1335,34 +1335,55 @@ int Board::pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove
     for(const Move &move : allMoves) {
         executeMove(move);
 
+        U64 positionHash = getPositionHash();
+        Entry entry = TranspositionTable::getInstance().getEntry(positionHash);
+        if(entry.hash != 0) {
+            undoLastMove();
+            if(entry.score >= beta) {
+                return beta;
+            }
+            if(entry.score > alpha) {
+                alpha = entry.score;
+                if(actingTeam == team && depthLeft == SEARCH_DEPTH) {
+                    bestMove = move;
+                }
+            }
+            continue;
+        }
+
         if (inCheck(ENEMY(actingTeam))) {
             undoLastMove();
             continue;
         }
 
+        int score;
         if(threeFoldRepetition || isStaleMate(actingTeam)) {
             undoLastMove();
             int evaluation = valuePosition(actingTeam);
 
             if(evaluation >= 0) {
-                return -100;
+                score = PENALTY_BAD_DRAW;
             } else if(evaluation < -500) {
-                return 200;
+                score = 200;
             } else {
-                return 100;
+                score = 100;
             }
-        }
-
-        int score;
-        if(bSearchPv) {
-            score = -pvSearch(-beta, -alpha, depthLeft - 1, team, bestMove);
         } else {
-            score = -zwSearch(-alpha, depthLeft - 1);
-            if (score > alpha) {
+            if (bSearchPv) {
                 score = -pvSearch(-beta, -alpha, depthLeft - 1, team, bestMove);
+            } else {
+                score = -zwSearch(-alpha, depthLeft - 1);
+                if (score > alpha) {
+                    score = -pvSearch(-beta, -alpha, depthLeft - 1, team, bestMove);
+                }
             }
         }
         undoLastMove();
+
+        // Save to transposition table
+        entry = Entry(positionHash, SEARCH_DEPTH - depthLeft, score);
+        TranspositionTable::getInstance().addEntry(entry);
+
         if(score >= beta) {
             return beta;
         } else if(score > alpha) {
@@ -1396,7 +1417,7 @@ int Board::zwSearch(int beta, int depthLeft) {
         int evaluation = valuePosition(actingTeam);
 
         if(evaluation >= 0) {
-            return -100;
+            return PENALTY_BAD_DRAW;
         } else if(evaluation < -500) {
             return 200;
         } else {
@@ -1412,20 +1433,27 @@ int Board::zwSearch(int beta, int depthLeft) {
             continue;
         }
 
+        int score;
         if(threeFoldRepetition || isStaleMate(actingTeam)) {
             undoLastMove();
             int evaluation = valuePosition(actingTeam);
 
             if(evaluation >= 0) {
-                return -100;
+                score = PENALTY_BAD_DRAW;
             } else if(evaluation < -500) {
-                return 200;
+                score = 200;
             } else {
-                return 100;
+                score = 100;
             }
+        } else {
+            score = -zwSearch(1 - beta, depthLeft - 1);
         }
-        int score = -zwSearch(1-beta, depthLeft - 1);
         undoLastMove();
+
+        // Save to transposition table
+        Entry entry = Entry(getPositionHash(), SEARCH_DEPTH - depthLeft, score);
+        TranspositionTable::getInstance().addEntry(entry);
+
         if(score >= beta) {
             return beta;
         }
