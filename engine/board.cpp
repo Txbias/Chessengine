@@ -1,5 +1,7 @@
 #include "board.h"
 
+#include <utility>
+
 #include "transposition_table.h"
 
 #define MIN(x, y) (x < y ? x : y)
@@ -46,6 +48,7 @@ void initializeHashKeys() {
 
 Board::Board() {
 
+    transpositionTable = std::make_shared<TranspositionTable>();
     initializeHashKeys();
 
     pieces[BLACK] = 0UL;
@@ -68,6 +71,7 @@ Board::Board() {
 
 Board::Board(const std::string& fen) {
 
+    transpositionTable = std::make_shared<TranspositionTable>();
     initializeHashKeys();
 
     occupied = 0UL;
@@ -714,6 +718,11 @@ void Board::printBoard() {
     std::cout << getBoardPrintable() << std::endl;
 }
 
+void Board::setTranspositionTable(std::shared_ptr<TranspositionTable> t) {
+    this->transpositionTable = std::move(t);
+
+}
+
 std::string Board::getBoardPrintable() {
     std::string output;
     std::string row[8];
@@ -1126,8 +1135,10 @@ std::vector<Move> Board::getAllMoves(int team) {
     return allMoves;
 }
 
-int Board::valueMove(Board boardCopy, const Move &move, int team) {
-    Board board = std::move(boardCopy);
+int Board::valueMove(const std::string& fen, const Move &move,
+                     int team, const std::shared_ptr<TranspositionTable>& t) {
+    Board board(fen);
+    board.setTranspositionTable(t);
     board.executeMove(move);
 
     if(board.inCheck(team) || board.checkMate(team)) {
@@ -1178,7 +1189,7 @@ Move Board::getBestMove(int team) {
             allMoves.erase(allMoves.begin());
             moveLock.unlock();
 
-            int value = valueMove(fen, move, team);
+            int value = valueMove(fen, move, team, transpositionTable);
             std::lock_guard<std::mutex> bestMoveLock(bestMoveMutex);
             if (bestMove.getFrom() == 0 && bestMove.getTo() == 0 && value != -30000) {
                 bestMove = move;
@@ -1196,7 +1207,7 @@ Move Board::getBestMove(int team) {
         future.wait();
     }
 
-    TranspositionTable::getInstance().updateAfterSearch();
+    transpositionTable->updateAfterSearch();
 
     return bestMove;
 }
@@ -1251,7 +1262,7 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
         executeMove(allMoves[i]);
 
         U64 positionHash = getPositionHash();
-        Entry entry = TranspositionTable::getInstance().getEntry(positionHash);
+        Entry entry = transpositionTable->getEntry(positionHash);
         if(entry.hash != 0) {
             undoLastMove();
             if(entry.score >= beta) {
@@ -1289,7 +1300,7 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
 
         // Save to transposition table
         entry = Entry(positionHash, SEARCH_DEPTH - depthLeft, score);
-        TranspositionTable::getInstance().addEntry(entry);
+        transpositionTable->addEntry(entry);
 
         if(score >= beta) {
             return beta;
@@ -1336,7 +1347,7 @@ int Board::pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove
         executeMove(move);
 
         U64 positionHash = getPositionHash();
-        Entry entry = TranspositionTable::getInstance().getEntry(positionHash);
+        Entry entry = transpositionTable->getEntry(positionHash);
         if(entry.hash != 0) {
             undoLastMove();
             if(entry.score >= beta) {
@@ -1382,7 +1393,7 @@ int Board::pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove
 
         // Save to transposition table
         entry = Entry(positionHash, SEARCH_DEPTH - depthLeft, score);
-        TranspositionTable::getInstance().addEntry(entry);
+        transpositionTable->addEntry(entry);
 
         if(score >= beta) {
             return beta;
@@ -1452,7 +1463,7 @@ int Board::zwSearch(int beta, int depthLeft) {
 
         // Save to transposition table
         Entry entry = Entry(getPositionHash(), SEARCH_DEPTH - depthLeft, score);
-        TranspositionTable::getInstance().addEntry(entry);
+        transpositionTable->addEntry(entry);
 
         if(score >= beta) {
             return beta;
@@ -1504,7 +1515,7 @@ int Board::quiesce(int alpha, int beta, int depth) {
         executeMove(move);
 
         U64 positionHash = getPositionHash();
-        Entry entry = TranspositionTable::getInstance().getEntry(positionHash);
+        Entry entry = transpositionTable->getEntry(positionHash);
         if(entry.hash != 0) {
             undoLastMove();
             if(entry.score >= beta) {
@@ -1538,7 +1549,7 @@ int Board::quiesce(int alpha, int beta, int depth) {
 
         // Save to transposition table
         entry = Entry(positionHash, SEARCH_DEPTH + depth, score);
-        TranspositionTable::getInstance().addEntry(entry);
+        transpositionTable->addEntry(entry);
 
         if(score >= beta) {
             return beta;

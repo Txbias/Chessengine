@@ -5,9 +5,11 @@
 #include <cctype>
 #include <map>
 #include <mutex>
+#include <memory>
 
 #include "Move.h"
 #include "thread_pool.h"
+#include "transposition_table.h"
 #include "pawns.h"
 #include "knight.h"
 #include "rook.h"
@@ -30,6 +32,8 @@ private:
     static const int WHITE = 0;
     static const int BLACK = 1;
 
+    std::shared_ptr<TranspositionTable> transpositionTable;
+
     void initializePieces();
 
     unsigned int getPieceType(unsigned int targetSquare, int team);
@@ -44,7 +48,7 @@ private:
 public:
 
     Board();
-    Board(const std::string& fen);
+    explicit Board(const std::string& fen);
 
     std::stack<Move> moves;
     std::map<U64, int> positions;
@@ -88,6 +92,8 @@ public:
     void executeUserMove(Move move);
     void undoLastMove();
     void printBoard();
+    void setTranspositionTable(std::shared_ptr<TranspositionTable> t);
+
     std::string getBoardPrintable();
     std::string getFENString();
 
@@ -95,7 +101,8 @@ public:
     int countMoves(int team);
     int countDoublePawns(int team);
 
-    static int valueMove(Board boardCopy, const Move &move, int team);
+    static int valueMove(const std::string& fen, const Move &move,
+                         int team, const std::shared_ptr<TranspositionTable>& t);
 
     inline unsigned long getOccupied() const {
         return occupied;
