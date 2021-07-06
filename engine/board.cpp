@@ -13,7 +13,7 @@
 #define MAX(x, y) (x > y ? x : y)
 
 bool initialized = false;
-int SEARCH_DEPTH = 3;
+int SEARCH_DEPTH = 4;
 
 // random piece keys [piece][square]
 U64 pieceKeys[12][64];
@@ -1264,6 +1264,17 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
         if (inCheck(ENEMY(actingTeam))) {
             undoLastMove();
             continue;
+        }
+
+        if(depthLeft == 1 && !move.isCapture() && !inCheck(WHITE) && !inCheck(BLACK)) {
+            // futility pruning
+            int valueAfter = valuePosition(getTeam(move.getTo()));
+            const int MARGIN = 330;
+            if(valueAfter + MARGIN < alpha) {
+                undoLastMove();
+                continue;
+            }
+
         }
 
         int score;
