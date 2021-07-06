@@ -2,21 +2,6 @@
 
 typedef unsigned long U64;
 
-std::array<int, 64> Rook::pieceSquareTable() {
-    constexpr std::array<int, 64> table = {
-            0,  0,  0,  0,  0,  0,  0,  0,
-            5, 10, 10, 10, 10, 10, 10,  5,
-            -5,  0,  0,  0,  0,  0,  0, -5,
-            -5,  0,  0,  0,  0,  0,  0, -5,
-            -5,  0,  0,  0,  0,  0,  0, -5,
-            -5,  0,  0,  0,  0,  0,  0, -5,
-            -5,  0,  0,  0,  0,  0,  0, -5,
-            0,  0,  5,  10,  10,  5,  0,  0
-    };
-
-    return table;
-}
-
 int Rook::getRookValue(const U64 pawns[2], int square, int team, int rookValue) {
     int value = rookValue;
 

@@ -1,35 +1,5 @@
 #include "king.h"
 
-std::array<int, 64> King::pieceSquareTable(U64 queens[2]) {
-    constexpr const std::array<int, 64> middleGameTable = {
-            -30,-40,-40,-50,-50,-40,-40,-30,
-            -30,-40,-40,-50,-50,-40,-40,-30,
-            -30,-40,-40,-50,-50,-40,-40,-30,
-            -30,-40,-40,-50,-50,-40,-40,-30,
-            -20,-30,-30,-40,-40,-30,-30,-20,
-            -10,-20,-20,-20,-20,-20,-20,-10,
-            20, 20,  0,  0,  0,  0, 20, 20,
-            20, 30, 10,  0,  0, 10, 30, 20,
-    };
-
-    constexpr const std::array<int, 64> endGameTable = {
-            -50,-40,-30,-20,-20,-30,-40,-50,
-            -30,-20,-10,  0,  0,-10,-20,-30,
-            -30,-10, 20, 30, 30, 20,-10,-30,
-            -30,-10, 30, 40, 40, 30,-10,-30,
-            -30,-10, 30, 40, 40, 30,-10,-30,
-            -30,-10, 20, 30, 30, 20,-10,-30,
-            -30,-30,  0,  0,  0,  0,-30,-30,
-            -50,-30,-30,-30,-30,-30,-30,-50,
-    };
-
-    if(!getCardinality(queens[0]) && !getCardinality(queens[1])) {
-        return endGameTable;
-    } else {
-        return middleGameTable;
-    }
-}
-
 std::vector<Move> King::getMoves(U64 king, U64 ownPieces, U64 enemyPieces) {
 
     unsigned int from = bitScanForward(king);
@@ -83,15 +53,11 @@ bool King::canCastleKingSide(U64 king, U64 rooks, U64 occupied, U64 enemyAttackM
     if(rookMoved[team][0]) return false;
 
     if(team == 0) {
-        if(!(king & (1UL << 4))) {
-            return false;
-        } else if(!(rooks & (1UL << 7))) {
+        if((!(king & (1UL << 4)) )|| (!(rooks & (1UL << 7)))) {
             return false;
         }
     } else {
-        if(!(king & (1UL << 60))) {
-            return false;
-        }else if(!(rooks & (1UL << 63))) {
+        if((!(king & (1UL << 60))) || (!(rooks & (1UL << 63)))) {
             return false;
         }
     }
@@ -127,16 +93,11 @@ bool King::canCastleQueenSide(U64 king, U64 rooks, U64 occupied, U64 enemyAttack
     if(rookMoved[team][1]) return false;
 
     if(team == 0) {
-        if(!(king & (1UL << 4))) {
-            return false;
-        } else if(!(rooks & (1UL << 0))) {
+        if((!(king & (1UL << 4))) || (!(rooks & (1UL << 0)))) {
             return false;
         }
-
     } else {
-        if(!(king & (1UL << 60))) {
-            return false;
-        } else if(!(rooks & (1UL << 56))) {
+        if((!(king & (1UL << 60))) || (!(rooks & (1UL << 56)))) {
             return false;
         }
     }

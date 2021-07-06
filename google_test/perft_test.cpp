@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "board.h"
+#include "utils.h"
 
 typedef unsigned long long ull;
 

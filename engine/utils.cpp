@@ -1,7 +1,17 @@
 #include "utils.h"
 
+#include <random>
 
+/**
+ * Calculates the number of set bits in the given bitboard
+ */
 int getCardinality(unsigned long bitboard) {
+
+    static const U64 k1 = 0x5555555555555555;
+    static const U64 k2 = 0x3333333333333333;
+    static const U64 k4 = 0x0f0f0f0f0f0f0f0f;
+    static const U64 kf = 0x0101010101010101;
+
     bitboard = bitboard - ((bitboard >> 1) & k1);
     bitboard = (bitboard & k2) + ((bitboard >> 2) & k2);
     bitboard = (bitboard + (bitboard >> 4)) & k4;
@@ -19,13 +29,9 @@ unsigned long randomU64Number() {
     return gen();
 }
 
-void setBit(unsigned long &bitboard, unsigned int pos) {
-    bitboard |= (1UL << pos);
-}
-
 unsigned long setRow(unsigned long bitboard, unsigned int row) {
     for(int i = 0; i < 8; i++) {
-        setBit(bitboard, row * 8 + i);
+        bitboard |= (1UL << (row * 8 + i));
     }
     return bitboard;
 }
@@ -40,18 +46,22 @@ unsigned int getFlag(unsigned int target, U64 enemyPieces) {
 }
 
 U64 eastOne(U64 bitboard) {
+    const U64 notHFile = 0x7F7F7F7F7F7F7F7F;
     return (bitboard & notHFile) << 1;
 }
 
 U64 westOne(U64 bitboard) {
+    const U64 notAFile = 0xFEFEFEFEFEFEFEFE;
     return (bitboard & notAFile) >> 1;
 }
 
 U64 northOne(U64 bitboard) {
+    const U64 not8Row = 0xFFFFFFFFFFFFFF;
     return (bitboard & not8Row) << 8;
 }
 
 U64 southOne(U64 bitboard) {
+    const U64 not1Row = 0xFFFFFFFFFFFFFF00;
     return (bitboard & not1Row) >> 8;
 }
 

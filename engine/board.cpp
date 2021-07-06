@@ -1,8 +1,13 @@
+#include <mutex>
+
 #include "board.h"
-
-#include <utility>
-
-#include "transposition_table.h"
+#include "thread_pool.h"
+#include "pawns.h"
+#include "knight.h"
+#include "rook.h"
+#include "bishop.h"
+#include "queen.h"
+#include "king.h"
 
 #define MIN(x, y) (x < y ? x : y)
 #define MAX(x, y) (x > y ? x : y)
@@ -83,7 +88,6 @@ Board::Board(const std::string& fen) {
             rookMoved[i][k] = true;
         }
     }
-
 
     for(int i = 0; i <= 1; i++) {
         pieces[i] = 0UL;
@@ -210,7 +214,6 @@ Board::Board(const std::string& fen) {
 
     U64 posHash = getPositionHash();
     positions.insert(std::make_pair(posHash, 1));
-
 }
 
 void Board::initializePieces() {
@@ -226,68 +229,52 @@ void Board::initializePieces() {
     occupied |= blackPawns;
     pieces[BLACK] |= blackPawns;
 
-    unsigned long whiteRook = 0;
-    setBit(whiteRook, 0);
-    setBit(whiteRook, 7);
+    unsigned long whiteRook = 1UL | (1UL << 7);
     rooks[WHITE] = whiteRook;
     occupied |= whiteRook;
     pieces[WHITE] |= whiteRook;
 
-    unsigned long blackRook = 0;
-    setBit(blackRook, 63);
-    setBit(blackRook, 56);
+    unsigned long blackRook = (1UL << 63) | (1UL << 56);
     rooks[BLACK] = blackRook;
     occupied |= blackRook;
     pieces[BLACK] |= blackRook;
 
-    unsigned long whiteKnight = 0;
-    setBit(whiteKnight, 1);
-    setBit(whiteKnight, 6);
+    unsigned long whiteKnight = (1UL << 1) | (1UL << 6);
     knights[WHITE] = whiteKnight;
     occupied |= whiteKnight;
     pieces[WHITE] |= whiteKnight;
 
-    unsigned long blackKnight = 0;
-    setBit(blackKnight, 57);
-    setBit(blackKnight, 62);
+    unsigned long blackKnight = (1UL << 57) | (1UL << 62);
     knights[BLACK] = blackKnight;
     occupied |= blackKnight;
     pieces[BLACK] |= blackKnight;
 
-    unsigned long whiteBishop = 0;
-    setBit(whiteBishop, 2);
-    setBit(whiteBishop, 5);
+    unsigned long whiteBishop = (1UL << 2) | (1UL << 5);
     bishops[WHITE] = whiteBishop;
     occupied |= whiteBishop;
     pieces[WHITE] |= whiteBishop;
 
-    unsigned long blackBishop = 0;
-    setBit(blackBishop, 58);
-    setBit(blackBishop, 61);
+    unsigned long blackBishop = (1UL << 58) | (1UL << 61);
     bishops[BLACK] = blackBishop;
     occupied |= blackBishop;
     pieces[BLACK] |= blackBishop;
 
-    unsigned long whiteQueen = 0;
-    setBit(whiteQueen, 3);
+    unsigned long whiteQueen = 1UL << 3;
     queens[WHITE] = whiteQueen;
     occupied |= whiteQueen;
     pieces[WHITE] |= whiteQueen;
 
-    unsigned long blackQueen = 0;
-    setBit(blackQueen, 59);
+    unsigned long blackQueen = 1UL << 59;
     queens[BLACK] = blackQueen;
     occupied |= blackQueen;
     pieces[BLACK] |= blackQueen;
 
-    unsigned long whiteKing = 0;
-    setBit(whiteKing, 4);
+    unsigned long whiteKing = 1UL << 4;
     kings[WHITE] = whiteKing;
     occupied |= whiteKing;
     pieces[WHITE] |= whiteKing;
 
-    unsigned long blackKing = 0;
-    setBit(blackKing, 60);
+    unsigned long blackKing = 1UL << 60;
     kings[BLACK] = blackKing;
     occupied |= blackKing;
     pieces[BLACK] |= blackKing;
@@ -364,6 +351,7 @@ void Board::executeMove(Move move) {
     enPassantSquare = 0;
 
     if(move.getFlags() == FLAG_PAWN_DBL_PUSH) {
+        // Save en passant square for the next move
         if(team == WHITE) {
             enPassantTarget = southOne(1UL << move.getTo());
             enPassantSquare = move.getTo() - 8;
@@ -381,7 +369,7 @@ void Board::executeMove(Move move) {
             pieceType = getTargetPieces(move.getTo(), ENEMY(team));
         }
         if(pieceType == nullptr) {
-            std::cerr << "Des ist net gut" << std::endl;
+            std::cerr << "Couldn't identify captured piece" << std::endl;
         }
 
         move.setCapturedPiece(pieceType);
@@ -546,9 +534,6 @@ U64 Board::getPositionHash() {
                 key ^= pieceKeys[i][square];
 
             } while (bitboardCopy &= bitboardCopy - 1);
-            if (*allPieces[i] == bitboardCopy) {
-                std::cout << "eraw" << std::endl;
-            }
         }
     }
     if(enPassantTarget) {
@@ -589,12 +574,12 @@ void Board::undoLastMove() {
     }
 
     U64 currPosHash = getPositionHash();
-    auto it2 = positions.find(currPosHash);
+    auto it = positions.find(currPosHash);
 
-    if(it2->second == 1) {
-        positions.erase(it2);
+    if(it->second == 1) {
+        positions.erase(it);
     } else {
-        if(it2->second == 3) {
+        if(it->second == 3) {
             threeFoldRepetition = false;
         }
         positions[currPosHash]--;
@@ -610,7 +595,7 @@ void Board::undoLastMove() {
 
     unsigned long* movedPieces = getTargetPieces(move.getTo(), team);
 
-    // Save new position
+    // Save new position of piece
     U64 originSquare = 1UL << move.getFrom();
     if(move.isPromotion()) {
         pawns[team] |= originSquare;
@@ -620,7 +605,7 @@ void Board::undoLastMove() {
     occupied |= originSquare;
     pieces[team] |= originSquare;
 
-    // Clear position
+    // Clear old piece position
     U64 currentPos = ~(1UL << move.getTo());
     movedPieces[team] &= currentPos;
     occupied &= currentPos;
@@ -910,7 +895,6 @@ unsigned int Board::getPieceType(unsigned int targetSquare, int team) {
     if(queens[team] & target) return QUEEN;
     if(kings[team] & target) return KING;
 
-
     return -1;
 }
 
@@ -1153,7 +1137,7 @@ int Board::valueMove(const std::string& fen, const Move &move,
         int value = board.valuePosition(team);
 
         if(value > 0) {
-            return -5000;
+            return PENALTY_BAD_DRAW;
         } else {
             return 500;
         }
@@ -1257,9 +1241,9 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
         }
     }
 
-    for(int i = 0; i < allMoves.size(); i++) {
+    for(const auto &move : allMoves) {
 
-        executeMove(allMoves[i]);
+        executeMove(move);
 
         U64 positionHash = getPositionHash();
         Entry entry = transpositionTable->getEntry(positionHash);
@@ -1271,7 +1255,7 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
             if(entry.score > alpha) {
                 alpha = entry.score;
                 if(actingTeam == team && depthLeft == SEARCH_DEPTH) {
-                    bestMove = allMoves[i];
+                    bestMove = move;
                 }
             }
             continue;
@@ -1308,7 +1292,7 @@ int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMov
         if(score > alpha) {
             alpha = score;
             if(actingTeam == team && depthLeft == SEARCH_DEPTH) {
-                bestMove = allMoves[i];
+                bestMove = move;
             }
         }
     }
@@ -1617,35 +1601,35 @@ int Board::valuePosition(int team) {
 
         U64 existsBishop = (1UL << i) & bishops[team];
         if (existsBishop) {
-            value += VALUE_BISHOP /*+ (Bishop::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
+            value += VALUE_BISHOP;
             countBishops[team]++;
         }
 
         U64 existsBishopEnemy = (1UL << i) & bishops[enemy];
         if (existsBishopEnemy) {
-            value -= VALUE_BISHOP /*+ (Bishop::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
+            value -= VALUE_BISHOP;
             countBishops[enemy]++;
         }
 
         int amountPawnsEnemy = getCardinality(pawns[enemy]);
         U64 existsRook = (1UL << i) & rooks[team];
-        if (existsRook) value += Rook::getRookValue(pawns, i, team, VALUE_ROOK) /*+ (Rook::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
+        if (existsRook) value += Rook::getRookValue(pawns, i, team, VALUE_ROOK);
 
         int amountPawns = getCardinality(pawns[team]);
         U64 existsRookEnemy = (1UL << i) & rooks[enemy];
-        if (existsRookEnemy) value -= Rook::getRookValue(pawns, i, enemy, VALUE_ROOK) /*+ (Rook::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
+        if (existsRookEnemy) value -= Rook::getRookValue(pawns, i, enemy, VALUE_ROOK);
 
         U64 existsQueen = (1UL << i) & queens[team];
-        if (existsQueen) value += VALUE_QUEEN /*+ (Queen::pieceSquareTable()[pieceSquareIndex(team, i)])*/;
+        if (existsQueen) value += VALUE_QUEEN;
 
         U64 existsQueenEnemy = (1UL << i) & queens[enemy];
-        if (existsQueenEnemy) value -= VALUE_QUEEN /*+ (Queen::pieceSquareTable()[pieceSquareIndex(enemy, i)])*/;
+        if (existsQueenEnemy) value -= VALUE_QUEEN;
 
         U64 existsKing = (1UL << i) & kings[team];
-        if (existsKing) value += VALUE_KING /*+ (King::pieceSquareTable(queens)[pieceSquareIndex(team, i)])*/;
+        if (existsKing) value += VALUE_KING;
 
         U64 existsKingEnemy = (1UL << i) & kings[enemy];
-        if (existsKingEnemy) value -= VALUE_KING /*+ (King::pieceSquareTable(queens)[pieceSquareIndex(enemy, i)])*/;
+        if (existsKingEnemy) value -= VALUE_KING;
     }
 
     // Mobility score

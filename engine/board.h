@@ -4,18 +4,10 @@
 #include <stack>
 #include <cctype>
 #include <map>
-#include <mutex>
 #include <memory>
 
 #include "Move.h"
-#include "thread_pool.h"
 #include "transposition_table.h"
-#include "pawns.h"
-#include "knight.h"
-#include "rook.h"
-#include "bishop.h"
-#include "queen.h"
-#include "king.h"
 
 #define PENALTY_BAD_DRAW -5000
 
@@ -37,13 +29,14 @@ private:
     void initializePieces();
 
     unsigned int getPieceType(unsigned int targetSquare, int team);
+
     unsigned long* getTargetPieces(unsigned int targetSquare, int team);
-    int getTeam(unsigned int square);
     U64 getTargetMap(int team, bool includeKing=true, bool countBlocked=false);
+
+    int getTeam(unsigned int square);
     int alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove);
     int pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove);
     int zwSearch(int beta, int depthLeft);
-
     int quiesce(int alpha, int beta, int depth);
 public:
 
@@ -76,8 +69,8 @@ public:
     int amountFullMoves = 1;
     int actingTeam = 0;
 
-    U64 enPassantTarget = 0UL;
     unsigned int enPassantSquare = 0;
+    U64 enPassantTarget = 0UL;
 
     U64 getPositionHash();
 
