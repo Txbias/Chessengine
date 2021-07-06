@@ -17,9 +17,8 @@ std::array<int, 64> Rook::pieceSquareTable() {
     return table;
 }
 
-int Rook::getRookValue(const U64 pawns[2], int square, int team) {
-    const static int BASE_VALUE = 500;
-    int value = BASE_VALUE;
+int Rook::getRookValue(const U64 pawns[2], int square, int team, int rookValue) {
+    int value = rookValue;
 
     int countPawnsEnemy = getCardinality(pawns[ENEMY(team)]);
     value += (8 - countPawnsEnemy) * 5;

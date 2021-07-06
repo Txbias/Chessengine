@@ -10,7 +10,7 @@ namespace Rook {
 
     typedef unsigned long U64;
 
-    int getRookValue(const U64 pawns[2], int square, int team);
+    int getRookValue(const U64 pawns[2], int square, int team, int rookValue);
 
     std::array<int, 64> pieceSquareTable();
 
