@@ -2,6 +2,7 @@
 
 std::vector<Move> Bishop::getMoves(U64 bishops, U64 ownPieces, U64 enemyPieces) {
     std::vector<Move> moves;
+    moves.reserve(28);
 
     std::vector<Move> movesNorthEast = getSlidingMovesNorthEast(bishops, ownPieces, enemyPieces);
     std::vector<Move> movesNorthWest = getSlidingMovesNorthWest(bishops, ownPieces, enemyPieces);
@@ -17,7 +18,7 @@ std::vector<Move> Bishop::getMoves(U64 bishops, U64 ownPieces, U64 enemyPieces) 
 }
 
 U64 Bishop::getTargets(U64 bishops, U64 ownPieces, U64 enemyPieces, bool countBlocked) {
-    std::vector<bitShiftFunction> directions = {
+    const static std::vector<bitShiftFunction> directions = {
             northEast, northWest, southEast, southWest
     };
 

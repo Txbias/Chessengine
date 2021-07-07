@@ -13,7 +13,7 @@
 #define MAX(x, y) (x > y ? x : y)
 
 bool initialized = false;
-int SEARCH_DEPTH = 4;
+int SEARCH_DEPTH = 3;
 
 // random piece keys [piece][square]
 U64 pieceKeys[12][64];
@@ -1081,6 +1081,7 @@ bool Board::isStaleMate(int team) {
 
 std::vector<Move> Board::getAllMoves(int team) {
     std::vector<Move> allMoves;
+    allMoves.reserve(332);
     U64 empty = ~occupied;
 
     int enemyTeam = team == WHITE ? BLACK : WHITE;

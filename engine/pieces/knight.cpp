@@ -28,14 +28,13 @@ constexpr U64 Knight::soSoWe(const U64 b) {return (b >> 17) & notHFile ;}
 
 
 U64 Knight::getTargets(U64 knights, U64 ownPieces) {
-    U64 targets = noNoEa(knights);
-    targets |= noEaEa(knights);
-    targets |= soEaEa(knights);
-    targets |= soSoEa(knights);
-    targets |= noNoWe(knights);
-    targets |= noWeWe(knights);
-    targets |= soWeWe(knights);
-    targets |= soSoWe(knights);
+    U64 l1 = (knights >> 1) & notHFile;
+    U64 l2 = (knights >> 2) & notGHFile;
+    U64 r1 = (knights << 1) & notAFile;
+    U64 r2 = (knights << 2) & notABFile;
+    U64 h1 = l1 | r1;
+    U64 h2 = l2 | r2;
+    U64 targets = (h1 << 16) | (h1 >> 16) | (h2 << 8) | (h2 >> 8);
 
     return targets & (~ownPieces);
 }

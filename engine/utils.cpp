@@ -155,6 +155,7 @@ std::vector<Move> getSlidingMoves(bitShiftFunction direction, bitShiftFunction o
                                   U64 slidingPieces, U64 ownPieces, U64 enemyPieces) {
 
     std::vector<Move> moves;
+    moves.reserve(40);
     U64 ownPiecesWithoutMoving = ownPieces & ~slidingPieces;
 
     while((slidingPieces = direction(slidingPieces)) != 0) {

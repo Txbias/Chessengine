@@ -151,6 +151,7 @@ U64 Pawn::blackPawnsAble2CaptureAny(U64 blackPawns, U64 whitePieces) {
 
 std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget) {
     std::vector<Move> moves;
+    moves.reserve(30); // Max pawns moves possible
 
     U64 able2DblPush = whitePawnsAble2DblPush(pawns, empty);
     U64 able2Push = whitePawnsAble2Push(pawns, empty);
@@ -232,6 +233,7 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64
 
 std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget) {
     std::vector<Move> moves;
+    moves.reserve(30); // Max pawns moves possible
 
     U64 able2DblPush = blackPawnsAble2DblPush(pawns, empty);
     U64 able2Push= blackPawnsAble2Push(pawns, empty);

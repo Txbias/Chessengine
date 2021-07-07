@@ -15,11 +15,11 @@ int Rook::getRookValue(const U64 pawns[2], int square, int team, int rookValue) 
     U64 rook = 1UL << square;
 
     if(!(rook & fileFill)) {
-        value += 25;
+        value += 15;
     } else if(!(rook & wFileFill) || !(rook & bFileFill)) {
-        value += 12;
+        value += 6;
     } else {
-        value -= 12;
+        value -= 6;
     }
 
     return value;
@@ -28,6 +28,7 @@ int Rook::getRookValue(const U64 pawns[2], int square, int team, int rookValue) 
 std::vector<Move> Rook::getMoves(U64 rooks, U64 ownPieces, U64 enemyPieces) {
 
     std::vector<Move> moves;
+    moves.reserve(28);
 
     std::vector<Move> movesNorth = getSlidingMovesNorth(rooks, ownPieces, enemyPieces);
     std::vector<Move> movesSouth = getSlidingMovesSouth(rooks, ownPieces, enemyPieces);
@@ -43,7 +44,7 @@ std::vector<Move> Rook::getMoves(U64 rooks, U64 ownPieces, U64 enemyPieces) {
 }
 
 U64 Rook::getTargets(U64 rooks, U64 ownPieces, U64 enemyPieces, bool countBlocked) {
-    std::vector<bitShiftFunction> directions = {
+    const static std::vector<bitShiftFunction> directions = {
             northOne, eastOne, westOne, southOne
     };
 

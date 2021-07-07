@@ -5,8 +5,9 @@ std::vector<Move> King::getMoves(U64 king, U64 ownPieces, U64 enemyPieces) {
     unsigned int from = bitScanForward(king);
     U64 attackedFields = getTargets(king, ownPieces);
 
-    std::vector<Move> moves;
     std::vector<int> setBits = getSetBits(attackedFields);
+    std::vector<Move> moves;
+    moves.reserve(setBits.size());
 
     for(int i : setBits) {
         unsigned int flag = getFlag(i, enemyPieces);
@@ -62,8 +63,8 @@ bool King::canCastleKingSide(U64 king, U64 rooks, U64 occupied, U64 enemyAttackM
         }
     }
 
-    U64 castlingSquares;
-    U64 targetSquares;
+    static U64 castlingSquares;
+    static U64 targetSquares;
 
     if(team == 0) {
         targetSquares = 1UL << 5 | 1UL << 6;
@@ -102,8 +103,8 @@ bool King::canCastleQueenSide(U64 king, U64 rooks, U64 occupied, U64 enemyAttack
         }
     }
 
-    U64 castlingSquares;
-    U64 targetSquares;
+    static U64 castlingSquares;
+    static U64 targetSquares;
 
     if(team == 0) {
         targetSquares = 1UL << 1 | 1UL << 2 | 1UL << 3;
@@ -127,17 +128,12 @@ bool King::canCastleQueenSide(U64 king, U64 rooks, U64 occupied, U64 enemyAttack
 }
 
 U64 King::getTargets(U64 king, U64 ownPieces) {
-    U64 attackedFields = 0UL;
+    U64 attackedFields = king;
 
-    attackedFields |= northOne(king);
-    attackedFields |= southOne(king);
     attackedFields |= westOne(king);
     attackedFields |= eastOne(king);
-
-    attackedFields |= northEast(king);
-    attackedFields |= northWest(king);
-    attackedFields |= southEast(king);
-    attackedFields |= southWest(king);
+    attackedFields |= northOne(attackedFields);
+    attackedFields |= southOne(attackedFields);
 
     attackedFields &= ~ownPieces;
 
