@@ -1,7 +1,15 @@
 #include "gtest/gtest.h"
 #include "rook.h"
+#include "utils.h"
 
-TEST(RookTest, normalMove) {
+class RookTests : public ::testing::Test {
+protected:
+    void SetUp() override {
+        initializeMagicBitboards();
+    }
+};
+
+TEST_F(RookTests, normalMove) {
 
     U64 rooks = 1UL << 27;
     U64 enemyPieces = 0UL;
@@ -11,7 +19,7 @@ TEST(RookTest, normalMove) {
     ASSERT_EQ(moves.size(), 14);
 }
 
-TEST(RookTest, attacks) {
+TEST_F(RookTests, attacks) {
 
     U64 rooks = 1UL << 35;
     U64 enemyPieces = 1UL << 36 | 1UL << 11 | 1UL << 42;
@@ -29,7 +37,7 @@ TEST(RookTest, attacks) {
     ASSERT_EQ(captures, 2);
 }
 
-TEST(RookTest, blocked) {
+TEST_F(RookTests, blocked) {
     U64 rooks = 1UL << 35 | 1UL << 20;
     U64 ownPieces = rooks | 1UL << 36 | 1UL << 19;
 
@@ -38,7 +46,7 @@ TEST(RookTest, blocked) {
     ASSERT_EQ(moves.size(), 13);
 }
 
-TEST(RookTest, blockedByRook) {
+TEST_F(RookTests, blockedByRook) {
     U64 rooks = 1UL << 34 | 1UL << 36 | 1UL << 10;
 
     std::vector<Move> moves = Rook::getMoves(rooks, rooks, 0UL);
@@ -52,4 +60,35 @@ TEST(RookTest, blockedByRook) {
 
     ASSERT_EQ(moves.size(), 8 + 11 + 10);
     ASSERT_EQ(captures, 0);
+}
+
+TEST_F(RookTests, targetMap) {
+    U64 rooks = 1UL;
+
+    U64 targets = Rook::getTargets(rooks, rooks, 0UL);
+    ASSERT_EQ(getCardinality(targets), 14);
+}
+
+TEST_F(RookTests, targetMapBlocked) {
+    U64 rooks = 1UL | 1UL << 5;
+
+    U64 targets = Rook::getTargets(rooks, rooks, 0UL);
+    ASSERT_EQ(getCardinality(targets), 20);
+
+}
+
+TEST_F(RookTests, targetMapBlockedByEnemy) {
+    U64 rooks = 1UL;
+    U64 enemies = 1UL << 3;
+
+    U64 targets = Rook::getTargets(rooks, rooks, enemies);
+    ASSERT_EQ(getCardinality(targets), 10);
+}
+
+TEST_F(RookTests, targetMapBlockedByEnemy2) {
+    U64 rooks = 1UL << 35;
+    U64 enemies = 1UL << 38 | 1UL << 1;
+
+    U64 targets = Rook::getTargets(rooks, rooks, enemies);
+    ASSERT_EQ(Rook::getMoves(rooks, rooks, enemies).size(), getCardinality(targets));
 }

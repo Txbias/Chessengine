@@ -29,11 +29,31 @@ std::vector<Move> Queen::getMoves(U64 queens, U64 ownPieces, U64 enemyPieces) {
 }
 
 U64 Queen::getTargets(U64 queens, U64 ownPieces, U64 enemyPieces, bool countBlocked) {
+    U64 occupied = ownPieces | enemyPieces;
+    U64 targets = 0UL;
 
-    static const std::vector<bitShiftFunction> directions = {
-            northOne, southOne, eastOne, westOne,
-            northEast, northWest, southEast, southWest
-    };
+    if(queens) do {
+        int square = bitScanForward(queens);
 
-    return getSlidingTargets(queens, ownPieces, enemyPieces, directions, countBlocked);
+        // diagonal blockers
+        U64 diagonalBlockers = getBishopMasks(square);
+        diagonalBlockers &= occupied;
+
+        // straight blockers
+        U64 straightBlockers = getRookMasks(square);
+        straightBlockers &= occupied;
+
+        U64 key = (diagonalBlockers * getBishopMagic(square)) >> (64 - getBishopIndexBit(square));
+        targets |= getBishopAttacks(square, key);
+
+        key = (straightBlockers * getRookMagic(square)) >> (64 - getRookIndexBit(square));
+        targets |= getRookAttacks(square, key);
+
+    } while(queens &= queens - 1);
+
+    if(!countBlocked) {
+        targets &= ~ownPieces;
+    }
+
+    return targets;
 }

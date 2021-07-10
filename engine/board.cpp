@@ -56,6 +56,8 @@ Board::Board() {
     transpositionTable = std::make_shared<TranspositionTable>();
     initializeHashKeys();
 
+    initializeMagicBitboards();
+
     pieces[BLACK] = 0UL;
     pieces[WHITE] = 0UL;
 
@@ -78,6 +80,8 @@ Board::Board(const std::string& fen) {
 
     transpositionTable = std::make_shared<TranspositionTable>();
     initializeHashKeys();
+
+    initializeMagicBitboards();
 
     occupied = 0UL;
     kingMoved[0] = true;

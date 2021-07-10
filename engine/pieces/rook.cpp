@@ -44,9 +44,22 @@ std::vector<Move> Rook::getMoves(U64 rooks, U64 ownPieces, U64 enemyPieces) {
 }
 
 U64 Rook::getTargets(U64 rooks, U64 ownPieces, U64 enemyPieces, bool countBlocked) {
-    const static std::vector<bitShiftFunction> directions = {
-            northOne, eastOne, westOne, southOne
-    };
+    U64 targets = 0UL;
+    U64 occupied = ownPieces | enemyPieces;
 
-    return getSlidingTargets(rooks, ownPieces, enemyPieces, directions, countBlocked);
+    if(rooks) do {
+        int square = bitScanForward(rooks);
+
+        U64 blockers = getRookMasks(square);
+        blockers &= occupied;
+
+        U64 key = (blockers * getRookMagic(square)) >> (64 - getRookIndexBit(square));
+        targets |= getRookAttacks(square, key);
+    } while(rooks &= rooks - 1);
+
+    if(!countBlocked) {
+        targets &= ~ownPieces;
+    }
+
+    return targets;
 }

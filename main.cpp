@@ -4,6 +4,7 @@
 
 #include "board.h"
 #include "logger.h"
+#include "utils.h"
 
 
 template <typename Out>
@@ -18,6 +19,7 @@ void split(const std::string &s, char delim, Out result) {
 int main() {
 
     Board board;
+    initializeMagicBitboards();
 
     bool hasMoved = false;
     int team = 0;

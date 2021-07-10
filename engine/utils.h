@@ -58,3 +58,22 @@ std::vector<Move> getSlidingMoves(bitShiftFunction direction, bitShiftFunction o
 
 U64 getSlidingTargets(U64 slidingPieces, U64 ownPieces, U64 enemyPieces,
                       const std::vector<bitShiftFunction>& directions, bool countBlocked=false);
+
+/**
+ * @brief Initializes all arrays needed for the magic bitboards.
+ * Needs to be called at the start of the program
+ */
+void initializeMagicBitboards();
+
+U64 getBlockersFromIndex(int index, U64 mask);
+
+U64 getBishopMasks(int square);
+U64 getRookMasks(int square);
+U64 getBishopAttacks(int square, U64 key);
+U64 getRookAttacks(int square, U64 key);
+int getBishopIndexBit(int square);
+int getRookIndexBit(int square);
+U64 getBishopMagic(int square);
+U64 getRookMagic(int square);
+
+

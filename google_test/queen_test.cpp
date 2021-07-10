@@ -1,7 +1,15 @@
 #include "gtest/gtest.h"
 #include "queen.h"
+#include "utils.h"
 
-TEST(QueenTest, normalMove) {
+class QueenTests : public ::testing::Test {
+protected:
+    void SetUp() override {
+        initializeMagicBitboards();
+    }
+};
+
+TEST_F(QueenTests, normalMove) {
     U64 queens = 1UL << 35;
 
     std::vector<Move> moves = Queen::getMoves(queens, queens, 0UL);
@@ -9,7 +17,7 @@ TEST(QueenTest, normalMove) {
     ASSERT_EQ(moves.size(), 27);
 }
 
-TEST(QueenTest, attacks) {
+TEST_F(QueenTests, attacks) {
     U64 queens = 1UL << 35;
     U64 enemyPieces = 1UL << 38 | 1UL << 3 | 1UL << 17 | 1UL << 20;
 
@@ -24,7 +32,7 @@ TEST(QueenTest, attacks) {
     ASSERT_EQ(moves.size(), 13 + 12);
 }
 
-TEST(QueenTest, blocked) {
+TEST_F(QueenTests, blocked) {
     U64 queens = 1UL << 35;
     U64 ownPieces = queens | 1UL << 37 | 1UL << 26;
 
@@ -33,7 +41,7 @@ TEST(QueenTest, blocked) {
     ASSERT_EQ(moves.size(), 21);
 }
 
-TEST(QueenTest, multipleQueens) {
+TEST_F(QueenTests, multipleQueens) {
     U64 queens = 1UL << 35 | 1UL << 37 | 1UL << 3 | 1UL << 56;
 
     std::vector<Move> moves = Queen::getMoves(queens, queens, 0UL);
@@ -41,7 +49,7 @@ TEST(QueenTest, multipleQueens) {
     ASSERT_EQ(moves.size(), (27-5)+(10+11)+(10+7)+16);
 }
 
-TEST(QueenTest, targetMapNormal) {
+TEST_F(QueenTests, targetMapNormal) {
     U64 queens = 1UL << 35;
 
     std::vector<Move> moves = Queen::getMoves(queens, queens, 0UL);
@@ -54,7 +62,7 @@ TEST(QueenTest, targetMapNormal) {
     }
 }
 
-TEST(QueenTest, targetMapAttack) {
+TEST_F(QueenTests, targetMapAttack) {
     U64 queens = 1UL << 35;
     U64 enemyPieces = 1UL << 38 | 1UL << 3 | 1UL << 17 | 1UL << 20;
 
@@ -68,7 +76,7 @@ TEST(QueenTest, targetMapAttack) {
     }
 }
 
-TEST(QueenTest, targetMapBlocked) {
+TEST_F(QueenTests, targetMapBlocked) {
     U64 queens = 1UL << 35;
     U64 ownPieces = queens | 1UL << 37 | 1UL << 26;
 
@@ -82,7 +90,7 @@ TEST(QueenTest, targetMapBlocked) {
     }
 }
 
-TEST(QueenTest, targetMapMultipleQueens) {
+TEST_F(QueenTests, targetMapMultipleQueens) {
     U64 queens = 1UL << 35 | 1UL << 37 | 1UL << 3 | 1UL << 56;
     std::vector<Move> moves = Queen::getMoves(queens, queens, 0UL);
     U64 targets = Queen::getTargets(queens, queens, 0UL);
@@ -92,7 +100,7 @@ TEST(QueenTest, targetMapMultipleQueens) {
     }
 }
 
-TEST(QueenTest, queenInCorner) {
+TEST_F(QueenTests, queenInCorner) {
     U64 queens = 1UL << 0;
     U64 enemyPieces = 1UL << 8 | 1UL << 3;
     std::vector<Move> moves = Queen::getMoves(queens, queens, enemyPieces);
