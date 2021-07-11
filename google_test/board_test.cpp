@@ -45,7 +45,6 @@ TEST(BoardTest, MateInOne) {
 
     Move move = board.getBestMove(1);
 
-    std::cout << Move::toNotation(move) << std::endl;
     ASSERT_EQ(Move::toNotation(move), "c6c8");
 }
 
