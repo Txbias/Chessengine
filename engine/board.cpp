@@ -1224,8 +1224,11 @@ int Board::countMoves(int team) {
 }
 
 int Board::alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove) {
-    if(depthLeft == 0) {
-        return quiesce(alpha, beta, 0);
+    if(depthLeft <= 0) {
+        // Only go in quiesce search if no team is in check
+        if(!inCheck(0) && !inCheck(1)) {
+            return quiesce(alpha, beta, 0);
+        }
     }
 
     if(checkMate(actingTeam)) {
