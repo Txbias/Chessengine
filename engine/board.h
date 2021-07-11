@@ -9,10 +9,12 @@
 #include "Move.h"
 #include "transposition_table.h"
 
-#define PENALTY_BAD_DRAW -5000
+
 
 void initializeHashKeys();
 void setSearchDepth(int depth);
+
+int getSearchDepth();
 
 class Board {
 
@@ -24,20 +26,12 @@ private:
     static const int WHITE = 0;
     static const int BLACK = 1;
 
-    std::shared_ptr<TranspositionTable> transpositionTable;
-
     void initializePieces();
 
     unsigned int getPieceType(unsigned int targetSquare, int team);
 
     unsigned long* getTargetPieces(unsigned int targetSquare, int team);
     U64 getTargetMap(int team, bool includeKing=true, bool countBlocked=false);
-
-    int getTeam(unsigned int square);
-    int alphaBeta(int alpha, int beta, int depthLeft, int team, Move &bestMove);
-    int pvSearch(int alpha, int beta, int depthLeft, int team, Move &bestMove);
-    int zwSearch(int beta, int depthLeft);
-    int quiesce(int alpha, int beta, int depth);
 public:
 
     Board();
@@ -94,10 +88,11 @@ public:
     int countMoves(int team);
     int countDoublePawns(int team);
 
-    static int valueMove(const std::string& fen, const Move &move,
-                         int team, const std::shared_ptr<TranspositionTable>& t);
-
     inline unsigned long getOccupied() const {
         return occupied;
     }
+
+    std::shared_ptr<TranspositionTable> transpositionTable;
+
+    int getTeam(unsigned int square);
 };
