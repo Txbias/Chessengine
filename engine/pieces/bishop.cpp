@@ -4,15 +4,27 @@ std::vector<Move> Bishop::getMoves(U64 bishops, U64 ownPieces, U64 enemyPieces) 
     std::vector<Move> moves;
     moves.reserve(28);
 
-    std::vector<Move> movesNorthEast = getSlidingMovesNorthEast(bishops, ownPieces, enemyPieces);
-    std::vector<Move> movesNorthWest = getSlidingMovesNorthWest(bishops, ownPieces, enemyPieces);
-    std::vector<Move> movesSouthEast = getSlidingMovesSouthEast(bishops, ownPieces, enemyPieces);
-    std::vector<Move> movesSouthWest = getSlidingMovesSouthWest(bishops, ownPieces, enemyPieces);
+    if(bishops) do {
+        int square = bitScanForward(bishops);
+        U64 bitboard = 1UL << square;
 
-    moves.insert(moves.end(), std::begin(movesNorthEast), std::end(movesNorthEast));
-    moves.insert(moves.end(), std::begin(movesNorthWest), std::end(movesNorthWest));
-    moves.insert(moves.end(), std::begin(movesSouthEast), std::end(movesSouthEast));
-    moves.insert(moves.end(), std::begin(movesSouthWest), std::end(movesSouthWest));
+        U64 targets = getTargets(bitboard, ownPieces, enemyPieces);
+
+        while(targets) {
+            int destinationSquare = bitScanForward(targets);
+
+            unsigned int flag = FLAG_QUIET;
+            if(enemyPieces & (1UL << destinationSquare)) {
+                flag = FLAG_CAPTURE;
+            }
+
+            moves.emplace_back(Move(square, destinationSquare, flag));
+
+            // delete used bit
+            targets &= targets - 1;
+        }
+    } while(bishops &= bishops - 1);
+
 
     return moves;
 }

@@ -5,25 +5,25 @@ std::vector<Move> Queen::getMoves(U64 queens, U64 ownPieces, U64 enemyPieces) {
     std::vector<Move> moves;
     moves.reserve(40);
 
-    std::vector<Move> movesNorth = getSlidingMovesNorth(queens, ownPieces, enemyPieces);
-    std::vector<Move> movesEast = getSlidingMovesEast(queens, ownPieces, enemyPieces);
-    std::vector<Move> movesSouth = getSlidingMovesSouth(queens, ownPieces, enemyPieces);
-    std::vector<Move> movesWest = getSlidingMovesWest(queens, ownPieces, enemyPieces);
+    if(queens) do {
+        int square = bitScanForward(queens);
+        U64 bitboard = 1UL << square;
 
-    std::vector<Move> movesNorthEast = getSlidingMovesNorthEast(queens, ownPieces, enemyPieces);
-    std::vector<Move> movesSouthEast = getSlidingMovesSouthEast(queens, ownPieces, enemyPieces);
-    std::vector<Move> movesSouthWest = getSlidingMovesSouthWest(queens, ownPieces, enemyPieces);
-    std::vector<Move> movesNorthWest = getSlidingMovesNorthWest(queens, ownPieces, enemyPieces);
+        U64 targets = getTargets(bitboard, ownPieces, enemyPieces);
+        while(targets) {
+            int destinationSquare = bitScanForward(targets);
 
-    moves.insert(moves.end(), std::begin(movesNorth), std::end(movesNorth));
-    moves.insert(moves.end(), std::begin(movesEast), std::end(movesEast));
-    moves.insert(moves.end(), std::begin(movesSouth), std::end(movesSouth));
-    moves.insert(moves.end(), std::begin(movesWest), std::end(movesWest));
+            unsigned int flag = FLAG_QUIET;
+            if(enemyPieces & (1UL << destinationSquare)) {
+                flag = FLAG_CAPTURE;
+            }
 
-    moves.insert(moves.end(), std::begin(movesNorthEast), std::end(movesNorthEast));
-    moves.insert(moves.end(), std::begin(movesSouthEast), std::end(movesSouthEast));
-    moves.insert(moves.end(), std::begin(movesSouthWest), std::end(movesSouthWest));
-    moves.insert(moves.end(), std::begin(movesNorthWest), std::end(movesNorthWest));
+            moves.emplace_back(Move(square, destinationSquare, flag));
+
+            // delete used bit
+            targets &= targets - 1;
+        }
+    } while(queens &= queens - 1);
 
     return moves;
 }

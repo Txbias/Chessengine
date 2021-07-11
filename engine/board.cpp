@@ -13,7 +13,7 @@
 #define MAX(x, y) (x > y ? x : y)
 
 bool initialized = false;
-int SEARCH_DEPTH = 3;
+int SEARCH_DEPTH = 4;
 
 // random piece keys [piece][square]
 U64 pieceKeys[12][64];

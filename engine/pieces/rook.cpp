@@ -30,15 +30,27 @@ std::vector<Move> Rook::getMoves(U64 rooks, U64 ownPieces, U64 enemyPieces) {
     std::vector<Move> moves;
     moves.reserve(28);
 
-    std::vector<Move> movesNorth = getSlidingMovesNorth(rooks, ownPieces, enemyPieces);
-    std::vector<Move> movesSouth = getSlidingMovesSouth(rooks, ownPieces, enemyPieces);
-    std::vector<Move> movesEast = getSlidingMovesEast(rooks, ownPieces, enemyPieces);
-    std::vector<Move> movesWest = getSlidingMovesWest(rooks, ownPieces, enemyPieces);
+    if(rooks) do {
+        int square = bitScanForward(rooks);
+        U64 bitboard = 1UL << square;
 
-    moves.insert(moves.end(), std::begin(movesNorth), std::end(movesNorth));
-    moves.insert(moves.end(), std::begin(movesSouth), std::end(movesSouth));
-    moves.insert(moves.end(), std::begin(movesEast), std::end(movesEast));
-    moves.insert(moves.end(), std::begin(movesWest), std::end(movesWest));
+        U64 targets = getTargets(bitboard, ownPieces, enemyPieces);
+
+        while(targets) {
+            int destinationSquare = bitScanForward(targets);
+
+            unsigned int flag = FLAG_QUIET;
+            if(enemyPieces & (1UL << destinationSquare)) {
+                flag = FLAG_CAPTURE;
+            }
+
+            moves.emplace_back(Move(square, destinationSquare, flag));
+
+            // delete used bit
+            targets &= targets - 1;
+        }
+    } while (rooks &= rooks - 1);
+
 
     return moves;
 }
