@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "utils.h"
-#include "Move.h"
+#include "move.h"
 
 
 namespace Bishop {

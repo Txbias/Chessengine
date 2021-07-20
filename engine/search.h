@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "Move.h"
+#include "move.h"
 #include "transposition_table.h"
 
 

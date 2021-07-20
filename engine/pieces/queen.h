@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Move.h"
+#include "move.h"
 #include "utils.h"
 
 namespace Queen {

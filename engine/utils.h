@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "Move.h"
+#include "move.h"
 
 #define FLAG_QUIET 0
 #define FLAG_PAWN_DBL_PUSH 1

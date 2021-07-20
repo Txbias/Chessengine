@@ -3,7 +3,7 @@
 #include <vector>
 #include <array>
 
-#include "Move.h"
+#include "move.h"
 #include "utils.h"
 
 
