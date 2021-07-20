@@ -150,7 +150,7 @@ U64 Pawn::blackPawnsAble2CaptureAny(U64 blackPawns, U64 whitePieces) {
 }
 
 std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget) {
-    std::vector<Move> moves(30); // Max pawns moves possible
+    std::vector<Move> moves(55);
     int index = 0;
 
     U64 able2DblPush = whitePawnsAble2DblPush(pawns, empty);
@@ -166,7 +166,9 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64
         int square = bitScanForward(able2Push);
         if(square >= 48) {
             // Promotion
-            Move move(square, square + 8, FLAG_QUEEN_PROMOTION);
+            Move move(square, square + 8, FLAG_KNIGHT_PROMOTION);
+            moves[index++] = move;
+            move = Move(square, square + 8, FLAG_QUEEN_PROMOTION);
             moves[index++] = move;
         } else {
             Move move(square, square + 8, FLAG_QUIET);
@@ -185,22 +187,31 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64
         if(west & enemyPieces) {
             int targetSquare = bitScanForward(west);
 
-            Move move(square, targetSquare, FLAG_CAPTURE);
             if(targetSquare >= 56) {
-                // Pawn promotion capture
-                move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
+                // Promotion capture
+                Move move(square, targetSquare, FLAG_KNIGHT_PROMOTION_CAPTURE);
+                moves[index++] = move;
+                move = Move(square, targetSquare, FLAG_QUEEN_PROMOTION_CAPTURE);
+                moves[index++] = move;
+            } else {
+                Move move(square, targetSquare, FLAG_CAPTURE);
+                moves[index++] = move;
             }
-            moves[index++] = move;
         }
 
         if(east & enemyPieces) {
             int targetSquare = bitScanForward(east);
 
-            Move move(square, targetSquare, FLAG_CAPTURE);
             if(targetSquare >= 56) {
-                move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
+                // Promotion capture
+                Move move(square, targetSquare, FLAG_KNIGHT_PROMOTION_CAPTURE);
+                moves[index++] = move;
+                move = Move(square, targetSquare, FLAG_QUEEN_PROMOTION_CAPTURE);
+                moves[index++] = move;
+            } else {
+                Move move(square, targetSquare, FLAG_CAPTURE);
+                moves[index++] = move;
             }
-            moves[index++] = move;
         }
     } while(able2Capture &= able2Capture - 1);
 
@@ -222,59 +233,70 @@ std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64
 }
 
 std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget) {
-    std::vector<Move> moves(30); // Max pawns moves possible
+    std::vector<Move> moves(55);
     int index = 0;
 
     U64 able2DblPush = blackPawnsAble2DblPush(pawns, empty);
     U64 able2Push= blackPawnsAble2Push(pawns, empty);
 
     if(able2DblPush) do {
-            int square = bitScanForward(able2DblPush);
-            Move move(square, square - 16, FLAG_PAWN_DBL_PUSH);
-            moves[index++] = move;
+        int square = bitScanForward(able2DblPush);
+        Move move(square, square - 16, FLAG_PAWN_DBL_PUSH);
+        moves[index++] = move;
     } while(able2DblPush &= able2DblPush - 1);
 
     if(able2Push) do {
-            int square = bitScanForward(able2Push);
-            if(square <= 15) {
-                // Promotion
-                Move move(square, square - 8, FLAG_QUEEN_PROMOTION);
-                moves[index++] = move;
-            } else {
-                Move move(square, square - 8, FLAG_QUIET);
-                moves[index++] = move;
-            }
+        int square = bitScanForward(able2Push);
+        if(square <= 15) {
+            // Promotion
+            Move move(square, square - 8, FLAG_KNIGHT_PROMOTION);
+            moves[index++] = move;
+            move = Move(square, square - 8, FLAG_QUEEN_PROMOTION);
+            moves[index++] = move;
+        } else {
+            Move move(square, square - 8, FLAG_QUIET);
+            moves[index++] = move;
+        }
     } while(able2Push &= able2Push - 1);
 
     // Captures
     U64 able2Capture = blackPawnsAble2CaptureAny(pawns, enemyPieces);
-    if(able2Capture) do {
-            int square = bitScanForward(able2Capture);
-            U64 bitboard = 1UL << square;
-            U64 west = blackPawnsWestAttacks(bitboard);
-            U64 east = blackPawnsEastAttacks(bitboard);
+    if (able2Capture) do {
+        int square = bitScanForward(able2Capture);
+        U64 bitboard = 1UL << square;
 
-            if(west & enemyPieces) {
-                int targetSquare = bitScanForward(west);
+        U64 west = blackPawnsWestAttacks(bitboard);
+        U64 east = blackPawnsEastAttacks(bitboard);
 
+        if (west & enemyPieces) {
+            int targetSquare = bitScanForward(west);
+            if (targetSquare <= 7) {
+                // Promotion captures
+                Move move(square, targetSquare, FLAG_KNIGHT_PROMOTION_CAPTURE);
+                moves[index++] = move;
+                move = Move(square, targetSquare, FLAG_QUEEN_PROMOTION_CAPTURE);
+                moves[index++] = move;
+            } else {
                 Move move(square, targetSquare, FLAG_CAPTURE);
-                if(targetSquare <= 7) {
-                    // Pawn promotion capture
-                    move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
-                }
                 moves[index++] = move;
             }
+        }
 
-            if(east & enemyPieces) {
-                int targetSquare = bitScanForward(east);
+        if (east & enemyPieces) {
+            int targetSquare = bitScanForward(east);
 
+            if (targetSquare <= 7) {
+                // Promotion captures
+                Move move(square, targetSquare, FLAG_KNIGHT_PROMOTION_CAPTURE);
+                moves[index++] = move;
+                move = Move(square, targetSquare, FLAG_QUEEN_PROMOTION_CAPTURE);
+                moves[index++] = move;
+            } else {
                 Move move(square, targetSquare, FLAG_CAPTURE);
-                if(targetSquare <= 7) {
-                    move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
-                }
                 moves[index++] = move;
             }
-    } while(able2Capture &= able2Capture - 1);
+        }
+    } while (able2Capture &= able2Capture - 1);
 
     // En passant moves
     U64 enPassant = blackPawnsAnyAttack(pawns) & enPassantTarget;

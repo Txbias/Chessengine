@@ -433,8 +433,15 @@ void Board::executeMove(Move move) {
     U64 target = 1UL << move.getTo();
 
     if(move.isPromotion()) {
-        // TODO: for all types of promotions
-        queens[team] |= target;
+        if(move.getFlags() == FLAG_QUEEN_PROMOTION || move.getFlags() == FLAG_QUEEN_PROMOTION_CAPTURE) {
+            queens[team] |= target;
+        } else if(move.getFlags() == FLAG_ROOK_PROMOTION || move.getFlags() == FLAG_ROOK_PROMOTION_CAPTURE) {
+            rooks[team] |= target;
+        } else if(move.getFlags() == FLAG_BISHOP_PROMOTION || move.getFlags() == FLAG_BISHOP_PROMOTION_CAPTURE) {
+            bishops[team] |= target;
+        } else if(move.getFlags() == FLAG_KNIGHT_PROMOTION || move.getFlags() == FLAG_KNIGHT_PROMOTION_CAPTURE) {
+            knights[team] |= target;
+        }
     } else {
         targetPieces[team] |= target;
     }

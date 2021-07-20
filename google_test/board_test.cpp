@@ -359,6 +359,19 @@ TEST(CheckMate, mate3) {
     ASSERT_TRUE(board.checkMate(0));
 }
 
+TEST(CheckMate, mateThroughKnight) {
+    Board board("3k4/8/8/8/8/RQ6/KP6/RNn5 b - - 0 1");
+
+    ASSERT_TRUE(board.checkMate(0));
+}
+
+TEST(CheckMate, mateThroughKnightPromotion) {
+    Board board("3k4/8/8/8/8/RQ6/KPp5/RN6 b - - 0 1");
+
+    Move move = board.getBestMove(1);
+    ASSERT_EQ(Move::toNotation(move), "c2c1n");
+}
+
 TEST(HashingTest, shouldNotChange) {
     Board board;
 

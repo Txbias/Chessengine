@@ -55,7 +55,7 @@ TEST(PawnTest, BlackAttackEast) {
     U64 empty = ~(blackPawns | enemyPieces);
 
     std::vector<Move> moves = Pawn::getMoves(blackPawns, empty, enemyPieces, 0UL, 1);
-    ASSERT_EQ(moves.size(), 1);
+    ASSERT_EQ(moves.size(), 2);
 }
 
 TEST(PawnTest, WhiteAttackBoth) {
@@ -64,7 +64,7 @@ TEST(PawnTest, WhiteAttackBoth) {
     U64 empty = ~(whitePawns | enemyPieces);
 
     std::vector<Move> moves = Pawn::getMoves(whitePawns, empty, enemyPieces, 0UL, 0);
-    ASSERT_EQ(moves.size(), 3);
+    ASSERT_EQ(moves.size(), 6);
 }
 
 TEST(PawnTest, BlackAttackBoth) {

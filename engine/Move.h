@@ -15,7 +15,14 @@
 #define FLAG_KING_CASTLE 2
 #define FLAG_QUEEN_CASTLE 3
 #define FLAG_CAPTURE 4
+#define FLAG_EP_CAPTURE 5
+#define FLAG_KNIGHT_PROMOTION 8
+#define FLAG_BISHOP_PROMOTION 9
+#define FLAG_ROOK_PROMOTION 10
 #define FLAG_QUEEN_PROMOTION 11
+#define FLAG_KNIGHT_PROMOTION_CAPTURE 12
+#define FLAG_BISHOP_PROMOTION_CAPTURE 13
+#define FLAG_ROOK_PROMOTION_CAPTURE 14
 #define FLAG_QUEEN_PROMOTION_CAPTURE 15
 
 class Move {
@@ -121,15 +128,25 @@ public:
         result += toNotation(move.getTo());
 
         if(move.isPromotion()) {
-            //TODO: for all types of promotions
-            result += "q";
+
+            if(move.getFlags() == FLAG_KNIGHT_PROMOTION ||
+                move.getFlags() == FLAG_KNIGHT_PROMOTION_CAPTURE) {
+                result += 'n';
+            } else if(move.getFlags() == FLAG_BISHOP_PROMOTION ||
+                move.getFlags() == FLAG_BISHOP_PROMOTION_CAPTURE) {
+                result += 'b';
+            } else if(move.getFlags() == FLAG_ROOK_PROMOTION ||
+                move.getFlags() == FLAG_ROOK_PROMOTION_CAPTURE) {
+                result += 'r';
+            } else {
+                result += 'q';
+            }
         }
 
         return result;
     }
 
     static Move fromNotation(const std::string& notation) {
-        //TODO: flag
         int x = (notation.at(0) - 97);
         int y = std::stoi(notation.substr(1, 2));
         unsigned int from = ((y-1) * 8) + x;
@@ -144,10 +161,13 @@ public:
             // Promotion
             if(notation.at(4) == 'q') {
                 flag = FLAG_QUEEN_PROMOTION;
-            } else {
-                std::cerr << "Unknown promotion piece: " << notation.at(4) << std::endl;
+            } else if(notation.at(4) == 'r') {
+                flag = FLAG_ROOK_PROMOTION;
+            } else if(notation.at(4) == 'n') {
+                flag = FLAG_KNIGHT_PROMOTION;
+            } else if(notation.at(4) == 'b') {
+                flag = FLAG_BISHOP_PROMOTION;
             }
-
         }
 
         return Move(from, to, flag);
