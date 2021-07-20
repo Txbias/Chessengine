@@ -150,170 +150,146 @@ U64 Pawn::blackPawnsAble2CaptureAny(U64 blackPawns, U64 whitePieces) {
 }
 
 std::vector<Move> Pawn::getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget) {
-    std::vector<Move> moves;
-    moves.reserve(30); // Max pawns moves possible
+    std::vector<Move> moves(30); // Max pawns moves possible
+    int index = 0;
 
     U64 able2DblPush = whitePawnsAble2DblPush(pawns, empty);
     U64 able2Push = whitePawnsAble2Push(pawns, empty);
 
-    for(unsigned int i = 0; i < 8; i++) {
-        if(able2DblPush & (1UL << (i + 8))) {
-            Move move(i + 8, i + 24, FLAG_PAWN_DBL_PUSH);
-            moves.emplace_back(move);
-        }
-    }
+    if(able2DblPush) do {
+        int square = bitScanForward(able2DblPush);
+        Move move(square, square + 16, FLAG_PAWN_DBL_PUSH);
+        moves[index++] = move;
+    } while(able2DblPush &= able2DblPush - 1);
 
-    for(unsigned int i = 0; i < 64; i++) {
-        if(able2Push & (1UL << i)) {
-            if((i + 8) / 8 != 7) {
-                Move move(i, i + 8, FLAG_QUIET);
-                moves.emplace_back(move);
-            } else {
-                // Pawn promotion
-                Move move(i, i + 8, FLAG_QUEEN_PROMOTION);
-                moves.emplace_back(move);
-            }
+    if(able2Push) do {
+        int square = bitScanForward(able2Push);
+        if(square >= 48) {
+            // Promotion
+            Move move(square, square + 8, FLAG_QUEEN_PROMOTION);
+            moves[index++] = move;
+        } else {
+            Move move(square, square + 8, FLAG_QUIET);
+            moves[index++] = move;
         }
-    }
+    } while(able2Push &= able2Push - 1);
 
+    // Captures
     U64 able2Capture = whitePawnsAble2CaptureAny(pawns, enemyPieces);
+    if(able2Capture) do {
+        int square = bitScanForward(able2Capture);
+        U64 bitboard = 1UL << square;
+        U64 west = whitePawnsWestAttacks(bitboard);
+        U64 east = whitePawnsEastAttacks(bitboard);
 
-    for(unsigned int i = 0; i < 64; i++) {
-        if(able2Capture & (1UL << i)) {
-            U64 west = whitePawnsWestAttacks(1UL << i);
-            for(unsigned int k = 0; k < 64; k++) {
-                if(west & (1UL << k) & enemyPieces) {
-                    if(k / 8 != 7) {
-                        Move move(i, k, FLAG_CAPTURE);
-                        moves.emplace_back(move);
-                    } else {
-                        // Pawn promotion
-                        Move move(i, k, FLAG_QUEEN_PROMOTION_CAPTURE);
-                        moves.emplace_back(move);
-                    }
-                    break;
-                }
-            }
+        if(west & enemyPieces) {
+            int targetSquare = bitScanForward(west);
 
-            U64 east = whitePawnsEastAttacks(1UL << i);
-            for(unsigned int k = 0; k < 64; k++) {
-                if(east & (1UL << k) & enemyPieces) {
-                    if(k / 8 != 7) {
-                        Move move(i, k, FLAG_CAPTURE);
-                        moves.emplace_back(move);
-                    } else {
-                        // Pawn promotion
-                        Move move(i, k, FLAG_QUEEN_PROMOTION_CAPTURE);
-                        moves.emplace_back(move);
-                    }
-                    break;
-                }
+            Move move(square, targetSquare, FLAG_CAPTURE);
+            if(targetSquare >= 56) {
+                // Pawn promotion capture
+                move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
             }
+            moves[index++] = move;
         }
-    }
 
+        if(east & enemyPieces) {
+            int targetSquare = bitScanForward(east);
+
+            Move move(square, targetSquare, FLAG_CAPTURE);
+            if(targetSquare >= 56) {
+                move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
+            }
+            moves[index++] = move;
+        }
+    } while(able2Capture &= able2Capture - 1);
+
+    // En passant moves
     U64 enPassant = whitePawnAnyAttack(pawns) & enPassantTarget;
     if(enPassant) {
         unsigned int to = bitScanForward(enPassant);
-        unsigned int from;
         U64 fromBitboard = pawns & blackPawnsAnyAttack(enPassantTarget);
-        for(int i = 0; i < 64; i++) {
-            if(fromBitboard & (1UL << i)) {
-                from = i;
-                Move move(from, to, FLAG_EP_CAPTURE);
-                moves.emplace_back(move);
-            }
-        }
 
+        do {
+            unsigned int from = bitScanForward(fromBitboard);
+            Move move(from, to, FLAG_EP_CAPTURE);
+            moves[index++] = move;
+        } while(fromBitboard &= fromBitboard - 1);
     }
 
-
+    moves.resize(index);
     return moves;
 }
 
 std::vector<Move> Pawn::getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget) {
-    std::vector<Move> moves;
-    moves.reserve(30); // Max pawns moves possible
+    std::vector<Move> moves(30); // Max pawns moves possible
+    int index = 0;
 
     U64 able2DblPush = blackPawnsAble2DblPush(pawns, empty);
     U64 able2Push= blackPawnsAble2Push(pawns, empty);
 
-    for(unsigned int i = 0; i < 8; i++) {
-        if (able2DblPush & (1UL << (i + 48))) {
-            Move move(i + 48, i + 32, FLAG_PAWN_DBL_PUSH);
-            moves.emplace_back(move);
-        }
-    }
+    if(able2DblPush) do {
+            int square = bitScanForward(able2DblPush);
+            Move move(square, square - 16, FLAG_PAWN_DBL_PUSH);
+            moves[index++] = move;
+    } while(able2DblPush &= able2DblPush - 1);
 
-    for(unsigned int i = 0; i < 64; i++) {
-        if(able2Push & (1UL << i)) {
-            if((i - 8) / 8 != 0) {
-                Move move(i, i - 8, FLAG_QUIET);
-                moves.emplace_back(move);
+    if(able2Push) do {
+            int square = bitScanForward(able2Push);
+            if(square <= 15) {
+                // Promotion
+                Move move(square, square - 8, FLAG_QUEEN_PROMOTION);
+                moves[index++] = move;
             } else {
-                Move move(i, i - 8, FLAG_QUEEN_PROMOTION);
-                moves.emplace_back(move);
+                Move move(square, square - 8, FLAG_QUIET);
+                moves[index++] = move;
             }
-        }
-    }
+    } while(able2Push &= able2Push - 1);
 
+    // Captures
     U64 able2Capture = blackPawnsAble2CaptureAny(pawns, enemyPieces);
+    if(able2Capture) do {
+            int square = bitScanForward(able2Capture);
+            U64 bitboard = 1UL << square;
+            U64 west = blackPawnsWestAttacks(bitboard);
+            U64 east = blackPawnsEastAttacks(bitboard);
 
-    for(unsigned int i = 0; i < 64; i++) {
-       if(able2Capture & (1UL << i)) {
-           U64 west = blackPawnsWestAttacks(1UL << i);
-           for(unsigned int k = 0; k < 64; k++) {
-               if(west & (1UL << k) & enemyPieces) {
-                   if(k / 8 != 0) {
-                       Move move(i, k, FLAG_CAPTURE);
-                       moves.emplace_back(move);
-                   } else {
-                       // Pawn promotion
-                       Move move(i, k, FLAG_QUEEN_PROMOTION_CAPTURE);
-                       moves.emplace_back(move);
-                   }
-                   break;
-               }
-           }
+            if(west & enemyPieces) {
+                int targetSquare = bitScanForward(west);
 
-           U64 east = blackPawnsEastAttacks(1UL << i);
-           for(unsigned int k = 0; k < 64; k++) {
-               if(east & (1UL << k) & enemyPieces) {
-                   if(k / 8 != 0) {
-                       Move move(i, k, FLAG_CAPTURE);
-                       moves.emplace_back(move);
-                   } else {
-                       // Pawn promotion
-                       Move move(i, k, FLAG_QUEEN_PROMOTION_CAPTURE);
-                       moves.emplace_back(move);
-                   }
-                   break;
-               }
-           }
-       }
-    }
+                Move move(square, targetSquare, FLAG_CAPTURE);
+                if(targetSquare <= 7) {
+                    // Pawn promotion capture
+                    move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
+                }
+                moves[index++] = move;
+            }
 
+            if(east & enemyPieces) {
+                int targetSquare = bitScanForward(east);
+
+                Move move(square, targetSquare, FLAG_CAPTURE);
+                if(targetSquare <= 7) {
+                    move.setFlags(FLAG_QUEEN_PROMOTION_CAPTURE);
+                }
+                moves[index++] = move;
+            }
+    } while(able2Capture &= able2Capture - 1);
+
+    // En passant moves
     U64 enPassant = blackPawnsAnyAttack(pawns) & enPassantTarget;
     if(enPassant) {
-        unsigned int to;
-        for(int i = 0; i < 64; i++) {
-            if(enPassantTarget & (1UL << i)) {
-                to = i;
-                break;
-            }
-        }
-        unsigned int from;
+        unsigned int to = bitScanForward(enPassant);
         U64 fromBitboard = pawns & whitePawnAnyAttack(enPassantTarget);
-        for(int i = 0; i < 64; i++) {
-            if(fromBitboard & (1UL << i)) {
-                from = i;
-                Move move(from, to, FLAG_EP_CAPTURE);
-                moves.emplace_back(move);
-            }
-        }
 
+        do {
+            unsigned int from = bitScanForward(fromBitboard);
+            Move move(from, to, FLAG_EP_CAPTURE);
+            moves[index++] = move;
+        } while(fromBitboard &= fromBitboard - 1);
     }
 
+    moves.resize(index);
     return moves;
 }
 
