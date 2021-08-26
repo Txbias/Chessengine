@@ -10,6 +10,7 @@ typedef U64(*bitShiftFunction)(U64);
 int getCardinality(unsigned long bitboard);
 int bitScanForward(U64 bitboard);
 
+// helper functions for shifting bitboards
 U64 eastOne(U64 bitboard);
 U64 westOne(U64 bitboard);
 U64 northOne(U64 bitboard);
@@ -31,20 +32,25 @@ unsigned long setFile(unsigned long bitboard, unsigned long file);
 unsigned long randomU64Number();
 unsigned int getFlag(unsigned int target, U64 enemyPieces);
 
+/**
+ * Calculates the indices of all set bits
+ * @return vector with indices of set bits
+ */
 std::vector<int> getSetBits(U64 bitboard);
 
-std::vector<Move> getSlidingMovesNorth(U64 pieces, U64 ownPieces, U64 enemyPieces);
-std::vector<Move> getSlidingMovesSouth(U64 pieces, U64 ownPieces, U64 enemyPieces);
-std::vector<Move> getSlidingMovesEast(U64 pieces, U64 ownPieces, U64 enemyPieces);
-std::vector<Move> getSlidingMovesWest(U64 pieces, U64 ownPieces, U64 enemyPieces);
 
-std::vector<Move> getSlidingMovesNorthEast(U64 slidingPieces, U64 ownPieces, U64 enemyPieces);
-std::vector<Move> getSlidingMovesNorthWest(U64 pieces, U64 ownPieces, U64 enemyPieces);
-std::vector<Move> getSlidingMovesSouthEast(U64 pieces, U64 ownPieces, U64 enemyPieces);
-std::vector<Move> getSlidingMovesSouthWest(U64 pieces, U64 ownPieces, U64 enemyPieces);
-std::vector<Move> getSlidingMoves(bitShiftFunction direction, bitShiftFunction oppositeDirection,
-                                  U64 slidingPieces, U64 OwnPieces, U64 enemyPieces);
-
+/**
+ * Calculates all squares attackable by some sliding pieces
+ * @param slidingPieces Bitboard with sliding pieces
+ * @param ownPieces     Bitboard with all friendly pieces
+ * @param enemyPieces   Bitboard with all enemy pieces
+ * @param directions    Vector of functions that shift a given bitboard
+ *                      in the direction the pieces can move
+ * @param countBlocked  Sets whether squares with pieces, that can
+ *                      be captured should be included
+ *
+ * @return  Bitboard with all squares that can be attacked marked
+ */
 U64 getSlidingTargets(U64 slidingPieces, U64 ownPieces, U64 enemyPieces,
                       const std::vector<bitShiftFunction>& directions, bool countBlocked=false);
 
@@ -56,6 +62,7 @@ void initializeMagicBitboards();
 
 U64 getBlockersFromIndex(int index, U64 mask);
 
+// functions for accessing precalculated moves
 U64 getBishopMasks(int square);
 U64 getRookMasks(int square);
 U64 getBishopAttacks(int square, U64 key);
