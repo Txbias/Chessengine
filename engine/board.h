@@ -10,7 +10,6 @@
 #include "transposition_table.h"
 
 
-
 void initializeHashKeys();
 void setSearchDepth(int depth);
 
@@ -18,13 +17,8 @@ int getSearchDepth();
 
 class Board {
 
-    typedef unsigned long U64;
-
 private:
     unsigned long occupied = 0;
-
-    static const int WHITE = 0;
-    static const int BLACK = 1;
 
     void initializePieces();
 
@@ -61,10 +55,12 @@ public:
     int VALUE_KING = 20000;
 
     int amountFullMoves = 1;
-    int actingTeam = 0;
+    int actingTeam = WHITE;
 
     unsigned int enPassantSquare = 0;
     U64 enPassantTarget = 0UL;
+
+    std::shared_ptr<TranspositionTable> transpositionTable;
 
     U64 getPositionHash();
 
@@ -91,8 +87,6 @@ public:
     inline unsigned long getOccupied() const {
         return occupied;
     }
-
-    std::shared_ptr<TranspositionTable> transpositionTable;
 
     int getTeam(unsigned int square);
 };

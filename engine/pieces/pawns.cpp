@@ -19,14 +19,6 @@ std::array<int, 64> Pawn::pieceSquareTable() {
     return table;
 }
 
-U64 Pawn::noEaOne(U64 b) { return (b << 9) & notAFile; }
-
-U64 Pawn::soEaOne(U64 b) { return (b >> 7) & notAFile; }
-
-U64 Pawn::soWeOne(U64 b) { return (b >> 9) & notHFile; }
-
-U64 Pawn::noWeOne(U64 b) { return (b << 7) & notHFile; }
-
 U64 nortOne(U64 bitboard) {
     return bitboard << 8;
 }
@@ -100,19 +92,19 @@ U64 Pawn::blackPawnsAble2DblPush(U64 blackPawns, U64 empty) {
 }
 
 U64 Pawn::whitePawnsEastAttacks(U64 pawns) {
-    return noEaOne(pawns);
+    return northEast(pawns);
 }
 
 U64 Pawn::blackPawnsEastAttacks(U64 pawns) {
-    return soEaOne(pawns);
+    return southEast(pawns);
 }
 
 U64 Pawn::whitePawnsWestAttacks(U64 pawns) {
-    return noWeOne(pawns);
+    return northWest(pawns);
 }
 
 U64 Pawn::blackPawnsWestAttacks(U64 pawns) {
-    return soWeOne(pawns);
+    return southWest(pawns);
 }
 
 U64 Pawn::whitePawnAnyAttack(U64 pawns) {

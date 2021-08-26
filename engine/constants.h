@@ -1,0 +1,33 @@
+#pragma once
+
+#define PAWN 0
+#define ROOK 1
+#define KNIGHT 2
+#define BISHOP 3
+#define QUEEN 4
+#define KING 5
+
+#define FLAG_QUIET 0
+#define FLAG_PAWN_DBL_PUSH 1
+#define FLAG_KING_CASTLE 2
+#define FLAG_QUEEN_CASTLE 3
+#define FLAG_CAPTURE 4
+#define FLAG_EP_CAPTURE 5
+#define FLAG_KNIGHT_PROMOTION 8
+#define FLAG_BISHOP_PROMOTION 9
+#define FLAG_ROOK_PROMOTION 10
+#define FLAG_QUEEN_PROMOTION 11
+#define FLAG_KNIGHT_PROMOTION_CAPTURE 12
+#define FLAG_BISHOP_PROMOTION_CAPTURE 13
+#define FLAG_ROOK_PROMOTION_CAPTURE 14
+#define FLAG_QUEEN_PROMOTION_CAPTURE 15
+
+#define WHITE 0
+#define BLACK 1
+
+#define ENEMY(team) (team == 0  ? 1 : 0)
+
+#define CHECKMATE_SCORE INT32_MAX
+#define PENALTY_BAD_DRAW -5000
+
+typedef unsigned long U64;

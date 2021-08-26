@@ -748,10 +748,6 @@ std::string Board::getBoardPrintable() {
 
         unsigned int type = getPieceType(i, team);
 
-        if(type == -1) {
-            std::cerr << "Des ist auch net gut" << std::endl;
-        }
-
         std::string code;
         switch(type) {
             case PAWN:

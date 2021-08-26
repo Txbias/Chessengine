@@ -8,22 +8,8 @@
 
 
 namespace Pawn {
-    typedef unsigned long U64;
-
-    const int WHITE = 0;
-    const U64 notAFile = 0xfefefefefefefefe; // ~0x0101010101010101
-    const U64 notHFile = 0x7f7f7f7f7f7f7f7f; // ~0x8080808080808080
-
 
     std::array<int, 64> pieceSquareTable();
-
-    U64 noEaOne(U64 b);
-
-    U64 soEaOne(U64 b);
-
-    U64 soWeOne(U64 b);
-
-    U64 noWeOne(U64 b);
 
     U64 wPassedPawns(U64 pawns[2]);
     U64 bPassedPawns(U64 pawns[2]);
@@ -65,9 +51,19 @@ namespace Pawn {
 
     U64 blackPawnsAble2CaptureAny(U64 blackPawns, U64 whitePieces);
 
+    // Helper functions for generating moves for black or white pawns
     std::vector<Move> getMovesWhite(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget);
     std::vector<Move> getMovesBlack(U64 pawns, U64 empty, U64 enemyPieces, U64 enPassantTarget);
 
+    /**
+     * Calculates all moves possible for the given configuration of pieces
+     * @param pawns Bitboard with all own pawns
+     * @param empty Bitboard that has a 1 for all empty squares
+     * @param enemyPieces Bitboard of all enemy pieces
+     * @param enPassantTarget Bitboard with the current en passant target square marked
+     * @param team the acting team
+     * @return All possible and legal pawn moves
+     */
     std::vector<Move> getMoves(U64 pawns, U64 empty, U64 enemyPieces,
                                U64 enPassantTarget, int team);
 }

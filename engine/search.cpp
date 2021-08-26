@@ -6,12 +6,7 @@
 #include "board.h"
 #include "thread_pool.h"
 #include "utils.h"
-
-#define WHITE 0
-#define BLACK 1
-
-#define CHECKMATE_SCORE INT32_MAX
-#define PENALTY_BAD_DRAW -5000
+#include "constants.h"
 
 int quiesce(Board &board, int alpha, int beta, int depth) {
     if(board.checkMate(board.actingTeam)) {
